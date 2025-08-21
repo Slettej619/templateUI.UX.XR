@@ -1,0 +1,345 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+numberfield.tsx
+"use client"
+
+import { ChevronDown, ChevronUp } from "lucide-react"
+import {
+  ButtonProps as AriaButtonProps,
+  Input as AriaInput,
+  InputProps as AriaInputProps,
+  NumberField as AriaNumberField,
+  NumberFieldProps as AriaNumberFieldProps,
+  ValidationResult as AriaValidationResult,
+  composeRenderProps,
+  Text,
+} from "react-aria-components"
+
+import { cn } from "@/lib/utils"
+
+import { Button } from "@/components/ui/button"
+import { FieldError, FieldGroup, Label } from "@/components/ui/field"
+
+const NumberField = AriaNumberField
+
+function NumberFieldInput({ className, ...props }: AriaInputProps) {
+  return (
+    <AriaInput
+      className={composeRenderProps(className, (className) =>
+        cn(
+          "w-fit min-w-0 flex-1 border-r border-transparent bg-background pr-2 outline outline-0 placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden",
+          className
+        )
+      )}
+      {...props}
+    />
+  )
+}
+
+function NumberFieldSteppers({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "absolute right-0 flex h-full flex-col border-l",
+        className
+      )}
+      {...props}
+    >
+      <NumberFieldStepper slot="increment">
+        <ChevronUp aria-hidden className="size-4" />
+      </NumberFieldStepper>
+      <div className="border-b" />
+      <NumberFieldStepper slot="decrement">
+        <ChevronDown aria-hidden className="size-4" />
+      </NumberFieldStepper>
+    </div>
+  )
+}
+
+function NumberFieldStepper({ className, ...props }: AriaButtonProps) {
+  return (
+    <Button
+      className={composeRenderProps(className, (className) =>
+        cn("w-auto grow rounded-none px-0.5 text-muted-foreground", className)
+      )}
+      variant={"ghost"}
+      size={"icon"}
+      {...props}
+    />
+  )
+}
+
+interface JollyNumberFieldProps extends AriaNumberFieldProps {
+  label?: string
+  description?: string
+  errorMessage?: string | ((validation: AriaValidationResult) => string)
+}
+
+function JollyNumberField({
+  label,
+  description,
+  errorMessage,
+  className,
+  ...props
+}: JollyNumberFieldProps) {
+  return (
+    <NumberField
+      className={composeRenderProps(className, (className) =>
+        cn("group flex flex-col gap-2", className)
+      )}
+      {...props}
+    >
+      <Label>{label}</Label>
+      <FieldGroup>
+        <NumberFieldInput />
+        <NumberFieldSteppers />
+      </FieldGroup>
+      {description && (
+        <Text className="text-sm text-muted-foreground" slot="description">
+          {description}
+        </Text>
+      )}
+      <FieldError>{errorMessage}</FieldError>
+    </NumberField>
+  )
+}
+
+export {
+  NumberField,
+  NumberFieldInput,
+  NumberFieldSteppers,
+  NumberFieldStepper,
+  JollyNumberField,
+}
+export type { JollyNumberFieldProps }
+
+
+demo.tsx
+import { FieldGroup, Label } from "@/components/ui/field"
+import {
+  NumberField,
+  NumberFieldInput,
+  NumberFieldSteppers,
+} from "@/components/ui/numberfield"
+
+export function NumberFieldDemo() {
+  return (
+    <NumberField defaultValue={1024} minValue={0}>
+      <Label>Width</Label>
+      <FieldGroup>
+        <NumberFieldInput />
+        <NumberFieldSteppers />
+      </FieldGroup>
+    </NumberField>
+  )
+}
+
+```
+
+Copy-paste these files for dependencies:
+```tsx
+jolbol1/button
+"use client"
+
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+import {
+  Button as AriaButton,
+  composeRenderProps,
+  type ButtonProps as AriaButtonProps,
+} from "react-aria-components"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  [
+    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors",
+    /* Disabled */
+    "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ",
+    /* Focus Visible */
+    "data-[focus-visible]:outline-none data-[focus-visible]:ring-2 data-[focus-visible]:ring-ring data-[focus-visible]:ring-offset-2",
+    /* Resets */
+    "focus-visible:outline-none",
+  ],
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground data-[hovered]:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground data-[hovered]:bg-destructive/90",
+        outline:
+          "border border-input bg-background data-[hovered]:bg-accent data-[hovered]:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground data-[hovered]:bg-secondary/80",
+        ghost: "data-[hovered]:bg-accent data-[hovered]:text-accent-foreground",
+        link: "text-primary underline-offset-4 data-[hovered]:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "size-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+interface ButtonProps
+  extends AriaButtonProps,
+    VariantProps<typeof buttonVariants> {}
+
+const Button = ({ className, variant, size, ...props }: ButtonProps) => {
+  return (
+    <AriaButton
+      className={composeRenderProps(className, (className) =>
+        cn(
+          buttonVariants({
+            variant,
+            size,
+            className,
+          })
+        )
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Button, buttonVariants }
+export type { ButtonProps }
+
+```
+```tsx
+jolbol1/field
+"use client"
+
+import { cva, type VariantProps } from "class-variance-authority"
+import {
+  FieldError as AriaFieldError,
+  FieldErrorProps as AriaFieldErrorProps,
+  Group as AriaGroup,
+  GroupProps as AriaGroupProps,
+  Label as AriaLabel,
+  LabelProps as AriaLabelProps,
+  Text as AriaText,
+  TextProps as AriaTextProps,
+  composeRenderProps,
+} from "react-aria-components"
+
+import { cn } from "@/lib/utils"
+
+const labelVariants = cva([
+  "text-sm font-medium leading-none",
+  /* Disabled */
+  "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-70",
+  /* Invalid */
+  "group-data-[invalid]:text-destructive",
+])
+
+const Label = ({ className, ...props }: AriaLabelProps) => (
+  <AriaLabel className={cn(labelVariants(), className)} {...props} />
+)
+
+function FormDescription({ className, ...props }: AriaTextProps) {
+  return (
+    <AriaText
+      className={cn("text-sm text-muted-foreground", className)}
+      {...props}
+      slot="description"
+    />
+  )
+}
+
+function FieldError({ className, ...props }: AriaFieldErrorProps) {
+  return (
+    <AriaFieldError
+      className={cn("text-sm font-medium text-destructive", className)}
+      {...props}
+    />
+  )
+}
+
+const fieldGroupVariants = cva("", {
+  variants: {
+    variant: {
+      default: [
+        "relative flex h-10 w-full items-center overflow-hidden rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+        /* Focus Within */
+        "data-[focus-within]:outline-none data-[focus-within]:ring-2 data-[focus-within]:ring-ring data-[focus-within]:ring-offset-2",
+        /* Disabled */
+        "data-[disabled]:opacity-50",
+      ],
+      ghost: "",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+})
+
+interface GroupProps
+  extends AriaGroupProps,
+    VariantProps<typeof fieldGroupVariants> {}
+
+function FieldGroup({ className, variant, ...props }: GroupProps) {
+  return (
+    <AriaGroup
+      className={composeRenderProps(className, (className) =>
+        cn(fieldGroupVariants({ variant }), className)
+      )}
+      {...props}
+    />
+  )
+}
+
+export {
+  Label,
+  labelVariants,
+  FieldGroup,
+  fieldGroupVariants,
+  FieldError,
+  FormDescription,
+}
+
+```
+
+Install NPM dependencies:
+```bash
+lucide-react, react-aria-components, class-variance-authority
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

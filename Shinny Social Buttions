@@ -1,0 +1,127 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+shiny-button.tsx
+import React from 'react';
+import clsx from 'clsx';
+
+type Variant = 'default' | 'green' | 'indigo' | 'red';
+
+interface FancyButtonProps {
+  icon: React.ReactNode;
+  variant?: Variant;
+  onClick?: () => void;
+  className?: string;
+  ariaLabel?: string;
+}
+
+const variantClasses: Record<Variant, string> = {
+  default: `
+    border-white/10 hover:border-white/30 
+    bg-gradient-to-tr from-black/60 to-black/40 
+    hover:bg-gradient-to-tr hover:from-white/10 hover:to-black/40 
+    hover:shadow-white/20`,
+  green: `
+    border-green-500/20 hover:border-green-500/50 
+    bg-gradient-to-tr from-black/60 to-black/40 
+    hover:bg-gradient-to-tr hover:from-green-500/10 hover:to-black/40 
+    hover:shadow-green-500/30`,
+  indigo: `
+    border-indigo-500/20 hover:border-indigo-500/50 
+    bg-gradient-to-tr from-black/60 to-black/40 
+    hover:bg-gradient-to-tr hover:from-indigo-500/10 hover:to-black/40 
+    hover:shadow-indigo-500/30`,
+  red: `
+    border-red-500/20 hover:border-red-500/50 
+    bg-gradient-to-tr from-black/60 to-black/40 
+    hover:bg-gradient-to-tr hover:from-red-500/10 hover:to-black/40 
+    hover:shadow-red-500/30`,
+};
+
+const glowGradientClasses: Record<Variant, string> = {
+  default: 'via-white/10',
+  green: 'via-green-400/20',
+  indigo: 'via-indigo-400/20',
+  red: 'via-red-400/20',
+};
+
+const FancyButton: React.FC<FancyButtonProps> = ({
+  icon,
+  variant = 'default',
+  onClick,
+  className = '',
+  ariaLabel = 'Fancy Button',
+}) => {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={clsx(
+        'p-5 rounded-full backdrop-blur-lg shadow-lg transition-all duration-300 ease-out cursor-pointer group relative overflow-hidden',
+        'hover:scale-110 active:scale-95 hover:rotate-2 active:rotate-0 hover:shadow-2xl',
+        variantClasses[variant],
+        className
+      )}
+    >
+      <div
+        className={clsx(
+          'absolute inset-0 bg-gradient-to-r from-transparent to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out',
+          glowGradientClasses[variant]
+        )}
+      />
+      <div className="relative z-10">{icon}</div>
+    </button>
+  );
+};
+
+export default FancyButton;
+
+
+demo.tsx
+import { FaYoutube, FaXTwitter, FaSpotify, FaReact } from 'react-icons/fa6';
+import FancyButton from '@/components/ui/shiny-button';
+
+export default function DemoOne(){
+  return (
+    <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
+      <FancyButton icon={<FaReact size={28} />} variant="default" />
+      <FancyButton icon={<FaSpotify size={28} className="text-green-500" />} variant="green" />
+      <FancyButton icon={<FaXTwitter size={28} className="text-indigo-500" />} variant="indigo" />
+      <FancyButton icon={<FaYoutube size={28} className="text-red-500" />} variant="red" />
+    </div>
+  );
+};
+
+```
+
+Install NPM dependencies:
+```bash
+clsx
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

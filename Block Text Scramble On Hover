@@ -1,0 +1,178 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+interactive-scrambled-text.tsx
+
+'use client';
+
+import {
+  useEffect,
+  useRef,
+  FC,
+  ReactNode,
+  CSSProperties,
+} from 'react';
+import { gsap } from 'gsap';
+import { SplitText } from 'gsap/SplitText';
+import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+
+
+gsap.registerPlugin(SplitText, ScrambleTextPlugin);
+
+/**
+ * Props for the InteractiveScrambledText component.
+ */
+interface InteractiveScrambledTextProps {
+  /** The radius of the scramble effect around the pointer. */
+  radius?: number;
+  /** The duration of the scramble animation. */
+  duration?: number;
+  /** The speed of the character scrambling. */
+  speed?: number;
+  /** The characters to use for the scramble effect. */
+  scrambleChars?: string;
+  /** Additional CSS classes to apply to the container. */
+  className?: string;
+  /** Inline CSS styles to apply to the container. */
+  style?: CSSProperties;
+  /** The text content to be animated. */
+  children: ReactNode;
+}
+
+
+const InteractiveScrambledText: FC<InteractiveScrambledTextProps> = ({
+  radius = 100,
+  duration = 1.2,
+  speed = 0.5,
+  scrambleChars = '.:',
+  className = '',
+  style = {},
+  children,
+}) => {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!rootRef.current || !children) return;
+
+    // Target the paragraph element for the split animation
+    const paragraph = rootRef.current.querySelector('p');
+    if (!paragraph) return;
+
+    const split = SplitText.create(paragraph, {
+      type: 'chars',
+      charsClass: 'inline-block will-change-transform',
+    });
+
+    // Store the original character content in a data attribute
+    split.chars.forEach((char) => {
+      gsap.set(char, { attr: { 'data-content': char.innerHTML } });
+    });
+
+    const handlePointerMove = (e: PointerEvent) => {
+      split.chars.forEach((char) => {
+        const { left, top, width, height } = char.getBoundingClientRect();
+        const charCenterX = left + width / 2;
+        const charCenterY = top + height / 2;
+        const distance = Math.hypot(e.clientX - charCenterX, e.clientY - charCenterY);
+
+        if (distance < radius) {
+          gsap.to(char, {
+            overwrite: true,
+            duration: duration * (1 - distance / radius), // Effect is faster closer to the center
+            scrambleText: {
+              text: char.dataset.content || '',
+              chars: scrambleChars,
+              speed,
+            },
+            ease: 'none',
+          });
+        }
+      });
+    };
+
+    const container = rootRef.current;
+    container.addEventListener('pointermove', handlePointerMove);
+
+    // Cleanup function
+    return () => {
+      container.removeEventListener('pointermove', handlePointerMove);
+      // Revert the SplitText to restore the original DOM structure
+      if (split.revert) {
+        split.revert();
+      }
+    };
+  }, [radius, duration, speed, scrambleChars, children]);
+
+  return (
+    <div
+      ref={rootRef}
+      className={`font-mono text-[clamp(14px,4vw,32px)] text-neutral-800 dark:text-neutral-200 transition-colors duration-300 ${className}`}
+      style={style}
+    >
+      <p>{children}</p>
+    </div>
+  );
+};
+
+export default InteractiveScrambledText;
+
+demo.tsx
+
+import React from 'react';
+import InteractiveScrambledText from '@/components/ui/interactive-scrambled-text';
+
+
+function InteractiveScrambledTextDemo() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white p-8 dark:bg-black transition-colors duration-300">
+      <div className="w-full max-w-4xl">
+        <InteractiveScrambledText
+          radius={120}
+          duration={1.5}
+          speed={0.4}
+          scrambleChars={'.:'}
+        >
+          Move your cursor over this text. Based on the pointer's proximity,
+          the characters will scramble and then resolve back to their original
+          state. This effect is created using GSAP's SplitText and
+          ScrambleText plugins for high-performance animation.
+        </InteractiveScrambledText>
+      </div>
+    </main>
+  );
+}
+
+export default InteractiveScrambledTextDemo;
+```
+
+Install NPM dependencies:
+```bash
+gsap
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

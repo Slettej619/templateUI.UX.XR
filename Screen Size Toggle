@@ -1,0 +1,337 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+use-screen-size.tsx
+import { useEffect, useState } from "react"
+
+// Define the possible screen sizes as a const array for better type inference
+const SCREEN_SIZES = ["xs", "sm", "md", "lg", "xl", "2xl"] as const
+
+// Create a union type from the array
+export type ScreenSize = (typeof SCREEN_SIZES)[number]
+
+// Type-safe size order mapping
+const sizeOrder: Record<ScreenSize, number> = {
+  xs: 0,
+  sm: 1,
+  md: 2,
+  lg: 3,
+  xl: 4,
+  "2xl": 5,
+} as const
+
+class ComparableScreenSize {
+  constructor(private value: ScreenSize) {}
+
+  toString(): ScreenSize {
+    return this.value
+  }
+
+  valueOf(): number {
+    return sizeOrder[this.value]
+  }
+
+  // Add type predicate methods for better TypeScript support
+  equals(other: ScreenSize): boolean {
+    return this.value === other
+  }
+
+  lessThan(other: ScreenSize): boolean {
+    return this.valueOf() < sizeOrder[other]
+  }
+
+  greaterThan(other: ScreenSize): boolean {
+    return this.valueOf() > sizeOrder[other]
+  }
+
+  lessThanOrEqual(other: ScreenSize): boolean {
+    return this.valueOf() <= sizeOrder[other]
+  }
+
+  greaterThanOrEqual(other: ScreenSize): boolean {
+    return this.valueOf() >= sizeOrder[other]
+  }
+}
+
+const useScreenSize = (): ComparableScreenSize => {
+  const [screenSize, setScreenSize] = useState<ScreenSize>("xs")
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth
+
+      if (width >= 1536) {
+        setScreenSize("2xl")
+      } else if (width >= 1280) {
+        setScreenSize("xl")
+      } else if (width >= 1024) {
+        setScreenSize("lg")
+      } else if (width >= 768) {
+        setScreenSize("md")
+      } else if (width >= 640) {
+        setScreenSize("sm")
+      } else {
+        setScreenSize("xs")
+      }
+    }
+
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  return new ComparableScreenSize(screenSize)
+}
+
+export { useScreenSize }
+
+demo.tsx
+'use client'
+
+import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
+import { Monitor, Smartphone, Tablet, Laptop } from "lucide-react"
+import { useScreenSize } from "@/components/hooks/use-screen-size"
+import { Card } from "@/components/ui/card"
+
+function ScreenSizeDemo() {
+  const screenSize = useScreenSize()
+  const [windowWidth, setWindowWidth] = useState(0)
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth)
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const breakpoints = {
+    xs: 0,
+    sm: 640,
+    md: 768,
+    lg: 1024,
+    xl: 1280,
+    "2xl": 1536,
+  }
+
+  const getDeviceIcon = (size: string) => {
+    if (screenSize.equals(size)) {
+      switch (size) {
+        case 'xs': return <Smartphone className="h-6 w-6 text-primary" />
+        case 'sm': return <Smartphone className="h-6 w-6 text-primary" />
+        case 'md': return <Tablet className="h-6 w-6 text-primary" />
+        case 'lg': return <Laptop className="h-6 w-6 text-primary" />
+        case 'xl': 
+        case '2xl': return <Monitor className="h-6 w-6 text-primary" />
+        default: return null
+      }
+    }
+    return null
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto p-6">
+      {/* Interactive Demo */}
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">Current Screen Size</h3>
+            <p className="text-sm text-muted-foreground">
+              Resize your browser window to see changes
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center space-y-4">
+            <div className="text-5xl font-bold flex items-center gap-4">
+              {screenSize.toString()}
+              {getDeviceIcon(screenSize.toString())}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Window width: {windowWidth}px
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {Object.entries(breakpoints).map(([size, width]) => (
+              <div
+                key={size}
+                className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
+              >
+                <span className="font-mono">{size}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {width}px{size !== '2xl' ? ' - ' + (breakpoints[Object.keys(breakpoints)[Object.keys(breakpoints).indexOf(size) + 1]] - 1) + 'px' : '+'}
+                  </span>
+                  {screenSize.equals(size) && (
+                    <div className="w-2 h-2 rounded-full bg-primary" />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* Documentation */}
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium mb-2">About useScreenSize</h3>
+            <p className="text-sm text-muted-foreground">
+              A hook for responsive breakpoint detection with TypeScript support
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <pre className="bg-muted p-3 rounded-md text-xs overflow-x-auto">
+              {`const screenSize = useScreenSize()
+
+// Comparison methods
+screenSize.equals("md")     // true/false
+screenSize.lessThan("lg")   // true/false
+screenSize.greaterThan("sm")// true/false
+screenSize.toString()       // "xs" | "sm" | "md" | "lg" | "xl" | "2xl"`}
+            </pre>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Features</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Type-safe breakpoint comparisons</li>
+                  <li>Automatic window resize handling</li>
+                  <li>Tailwind CSS breakpoint alignment</li>
+                  <li>Comparable size utilities</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium mb-2">Common Use Cases</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Responsive layouts</li>
+                  <li>Conditional rendering</li>
+                  <li>Mobile/desktop detection</li>
+                  <li>Adaptive components</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+export { ScreenSizeDemo }
+```
+
+Copy-paste these files for dependencies:
+```tsx
+shadcn/card
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      className,
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn(
+      "text-2xl font-semibold leading-none tracking-tight",
+      className,
+    )}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

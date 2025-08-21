@@ -1,0 +1,142 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+scroll-and-swap-text.tsx
+import { useRef } from "react"
+import { motion, useScroll, useTransform } from "framer-motion"
+
+interface TextProps {
+  label: string
+  containerRef: React.RefObject<HTMLElement>
+  offset?: [string, string]
+  className?: string
+}
+
+const ScrollAndSwapText = ({
+  label,
+  offset = ["0 0", "0 1"],
+  className,
+  containerRef,
+  ...props
+}: TextProps) => {
+  const ref = useRef<HTMLSpanElement>(null)
+
+  const { scrollYProgress } = useScroll({
+    container: containerRef,
+    target: ref,
+    offset: offset as any, // framer motion doesnt export the type, so we have to cast it, sorry :/
+    layoutEffect: false,
+  })
+
+  const top = useTransform(scrollYProgress, [0, 1], ["0%", "-100%"])
+  const bottom = useTransform(scrollYProgress, [0, 1], ["100%", "0%"])
+
+  return (
+    <span
+      className={`flex overflow-hidden relative items-center justify-center p-0 
+      ${className}`}
+      ref={ref}
+      {...props}
+    >
+      <span className="relative text-transparent" aria-hidden="true">{label}</span>
+      <motion.span className="absolute " style={{ top: top }} >
+        {label}
+      </motion.span>
+      <motion.span
+        className="absolute "
+        style={{ top: bottom }}
+        aria-hidden="true"
+      >
+        {label}
+      </motion.span>
+    </span>
+  )
+}
+
+export {ScrollAndSwapText}
+
+
+demo.tsx
+'use client'
+
+import { useRef } from "react"
+import { ScrollAndSwapText } from "@/components/ui/scroll-and-swap-text"
+
+function ScrollQuoteExample() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  return (
+    <div className="w-full min-h-screen flex items-center justify-center p-8 bg-background">
+      <div className="w-4/6 h-[600px] rounded-3xl border relative">
+        <div 
+          ref={containerRef}
+          className="w-full h-full rounded-lg items-center justify-center font-overusedGrotesk p-2 overflow-auto overscroll-auto text-[#E794DA] relative"
+        >
+          <div className="h-[100%] flex justify-center items-center uppercase relative">
+            <p className="absolute bottom-4 left-4 font-bold text-xl">
+              SCROLL SLOWLY
+            </p>
+            <div className="flex md:text-4xl sm:text-3xl text-lg lg:text-5xl cl:text-6xl justify-center items-center flex-col">
+              <ScrollAndSwapText
+                label="Every day is a journey,"
+                offset={["0 0.15", "0 0.35"]}
+                className="font-bold"
+                containerRef={containerRef}
+              />
+              <ScrollAndSwapText
+                label="and the journey"
+                offset={["0 0.25", "0 0.45"]}
+                className="font-bold"
+                containerRef={containerRef}
+              />
+              <ScrollAndSwapText
+                label="itself is home."
+                offset={["0 0.35", "0 0.55"]}
+                className="font-bold"
+                containerRef={containerRef}
+              />
+            </div>
+          </div>
+          <div className="h-[30%]" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export {
+  ScrollQuoteExample
+}
+```
+
+Install NPM dependencies:
+```bash
+framer-motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

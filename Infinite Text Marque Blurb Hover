@@ -1,0 +1,169 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+infinite-text-marquee.tsx
+"use client";
+ 
+import * as React from "react";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+ 
+type InfiniteTextMarqueeProps = {
+  text?: string;
+  link?: string;
+  speed?: number;
+  showTooltip?: boolean;
+  tooltipText?: string;
+  fontSize?: string;
+  textColor?: string;
+  hoverColor?: string;
+};
+ 
+export const InfiniteTextMarquee: React.FC<InfiniteTextMarqueeProps> = ({
+  text = "Let's Get Started",
+  link = "/components",
+  speed = 30,
+  showTooltip = true,
+  tooltipText = "Time to Flex💪",
+  fontSize = "8rem",
+  textColor = "", // optional override
+  hoverColor = "", // optional override
+}) => {
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const maxRotation = 8;
+ 
+  useEffect(() => {
+    if (!showTooltip) return;
+ 
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursorPosition({ x: e.clientX, y: e.clientY });
+ 
+      const midpoint = window.innerWidth / 2;
+      const distanceFromMidpoint = Math.abs(e.clientX - midpoint);
+      const rotation = (distanceFromMidpoint / midpoint) * maxRotation;
+ 
+      setRotation(e.clientX > midpoint ? rotation : -rotation);
+    };
+ 
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [showTooltip]);
+ 
+  const repeatedText = Array(10).fill(text).join(" - ") + " -";
+ 
+  return (
+    <>
+      {showTooltip && (
+        <div
+          className={`following-tooltip fixed z-[99] transition-opacity duration-300 font-bold px-12 py-6 rounded-3xl text-nowrap
+            ${isHovered ? "opacity-100" : "opacity-0"}
+            bg-primary text-primary-foreground
+          `}
+          style={{
+            top: `${cursorPosition.y}px`,
+            left: `${cursorPosition.x}px`,
+            transform: `rotateZ(${rotation}deg) translate(-50%, -140%)`,
+          }}
+        >
+          <p>{tooltipText}</p>
+        </div>
+      )}
+ 
+      <main className="relative w-vw overflow-hidden">
+        <motion.div
+          className="whitespace-nowrap"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          animate={{
+            x: [0, -1000],
+            transition: {
+              repeat: Infinity,
+              duration: speed,
+              ease: "linear",
+            },
+          }}
+        >
+          <Link href={link}>
+            <span
+              className={`cursor-pointer font-bold tracking-tight py-10 m-0 transition-all ${
+                textColor ? "" : "text-black dark:text-white"
+              }`}
+              style={{
+                fontSize,
+                color: textColor || undefined,
+              }}
+            >
+              <span className="hoverable-text">{repeatedText}</span>
+              <style jsx>{`
+                .hoverable-text:hover {
+                  color: ${hoverColor || "var(--tw-prose-links)"};
+                }
+              `}</style>
+            </span>
+          </Link>
+        </motion.div>
+      </main>
+    </>
+  );
+};
+
+demo.tsx
+import { InfiniteTextMarquee } from "@/components/ui/infinite-text-marquee"
+
+
+const Demo = () => {
+    return (
+        <>
+        <div className="overflow-x-hidden border rounded-xl">
+            <InfiniteTextMarquee
+                text="HextaUI"
+                link="https://hextaui.com"
+                speed={20}
+                tooltipText="It is Amazing!! 🤩🔥"
+                fontSize="8rem"
+                textColor="bg-primary"
+                hoverColor="#FC5212"
+                showTooltip={true}
+            />
+        </div>
+        </>
+    )
+}
+
+export {Demo}
+```
+
+Install NPM dependencies:
+```bash
+motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

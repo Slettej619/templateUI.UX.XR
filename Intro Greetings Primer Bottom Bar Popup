@@ -1,0 +1,126 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+card-with-grid-pattern.tsx
+import { cn } from '@/lib/utils'
+import { motion } from "framer-motion"
+
+interface GridPatternCardProps {
+  children: React.ReactNode
+  className?: string
+  patternClassName?: string
+  gradientClassName?: string
+}
+
+export function GridPatternCard({ 
+  children, 
+  className,
+  patternClassName,
+  gradientClassName
+}: GridPatternCardProps) {
+  return (
+    <motion.div
+      className={cn(
+        "border w-full rounded-md overflow-hidden",
+        "bg-white dark:bg-zinc-950",
+        "border-zinc-200 dark:border-zinc-900",
+        className
+      )}
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
+      <div className={cn(
+        "size-full bg-repeat bg-[length:50px_50px]",
+        "bg-square-pattern-light dark:bg-square-pattern",
+        patternClassName
+      )}>
+        <div className={cn(
+          "size-full bg-gradient-to-tr",
+          "from-white via-white/[0.85] to-white",
+          "dark:from-zinc-950 dark:via-zinc-950/[.85] dark:to-zinc-950",
+          gradientClassName
+        )}>
+          {children}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+export function GridPatternCardBody({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div 
+      className={cn("text-left p-4 md:p-6", className)} 
+      {...props} 
+    />
+  )
+}
+
+demo.tsx
+import { GridPatternCard, GridPatternCardBody } from "@/components/ui/card-with-grid-pattern"
+
+
+export function GridPatternCardDemo() {
+  return (
+    <GridPatternCard>
+      <GridPatternCardBody>
+        <h3 className="text-lg font-bold mb-1 text-foreground">
+          Square Grid Pattern
+        </h3>
+        <p className="text-wrap text-sm text-foreground/60">
+          A clean and structured pattern featuring a grid of squares. 
+          The minimal design creates a subtle texture that adds depth 
+          without overwhelming the content.
+        </p>
+      </GridPatternCardBody>
+    </GridPatternCard>
+  )
+}
+```
+
+Install NPM dependencies:
+```bash
+framer-motion
+```
+
+Extend existing tailwind.config.js with this code:
+```js
+module.exports = {
+  theme: {
+    extend: {
+      backgroundImage: {
+        'square-pattern': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cg stroke-width='3.5' stroke='hsla(0, 0%25, 100%25, 1.00)' fill='none'%3E%3Crect width='400' height='400' x='0' y='0'%3E%3C/rect%3E%3Crect width='400' height='400' x='400' y='0'%3E%3C/rect%3E%3Crect width='400' height='400' x='800' y='0'%3E%3C/rect%3E%3Crect width='400' height='400' x='0' y='400'%3E%3C/rect%3E%3Crect width='400' height='400' x='400' y='400'%3E%3C/rect%3E%3Crect width='400' height='400' x='800' y='400'%3E%3C/rect%3E%3Crect width='400' height='400' x='0' y='800'%3E%3C/rect%3E%3Crect width='400' height='400' x='400' y='800'%3E%3C/rect%3E%3Crect width='400' height='400' x='800' y='800'%3E%3C/rect%3E%3C/g%3E%3C/svg%3E")`,
+        'square-pattern-light': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cg stroke-width='3.5' stroke='hsla(215, 16%25, 47%25, 1.00)' fill='none'%3E%3Crect width='400' height='400' x='0' y='0'%3E%3C/rect%3E%3Crect width='400' height='400' x='400' y='0'%3E%3C/rect%3E%3Crect width='400' height='400' x='800' y='0'%3E%3C/rect%3E%3Crect width='400' height='400' x='0' y='400'%3E%3C/rect%3E%3Crect width='400' height='400' x='400' y='400'%3E%3C/rect%3E%3Crect width='400' height='400' x='800' y='400'%3E%3C/rect%3E%3Crect width='400' height='400' x='0' y='800'%3E%3C/rect%3E%3Crect width='400' height='400' x='400' y='800'%3E%3C/rect%3E%3Crect width='400' height='400' x='800' y='800'%3E%3C/rect%3E%3C/g%3E%3C/svg%3E")`,
+      },
+    },
+  },
+}
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

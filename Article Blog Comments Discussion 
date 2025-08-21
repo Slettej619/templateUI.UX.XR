@@ -1,0 +1,264 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+discussion.tsx
+import React from "react"
+import * as AccordionPrimitive from "@radix-ui/react-accordion"
+import { ChevronDown } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+export function DiscussionItem({
+  className,
+  ...props
+}: React.ComponentProps<typeof AccordionPrimitive.Item>) {
+  return (
+    <AccordionPrimitive.Item
+      className={cn(
+        "relative pl-4 mt-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-gradient-to-b before:from-border before:via-border/60 before:to-border/40",
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+export function DiscussionContent({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof AccordionPrimitive.Header>) {
+  return (
+    <AccordionPrimitive.Header className={cn("flex", className)} {...props}>
+      {children}
+    </AccordionPrimitive.Header>
+  )
+}
+
+export function DiscussionExpand({
+  className,
+  ...props
+}: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
+  return (
+    <AccordionPrimitive.Trigger
+      className={cn(
+        "flex flex-1 items-center gap-1 text-muted-foreground text-xs font-medium transition-all hover:underline text-left [&[data-state=open]>svg]:rotate-180",
+        className,
+      )}
+      {...props}
+    >
+      Show Replies
+      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+    </AccordionPrimitive.Trigger>
+  )
+}
+
+export function DiscussionTitle({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div className={cn("font-semibold text-sm", className)} {...props}>
+      {children}
+    </div>
+  )
+}
+
+export function DiscussionBody({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div className={cn("text-sm leading-relaxed", className)} {...props}>
+      {children}
+    </div>
+  )
+}
+
+export function DiscussionReplies({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<typeof AccordionPrimitive.Content>) {
+  return (
+    <AccordionPrimitive.Content
+      className={cn(
+        "pl-10 overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </AccordionPrimitive.Content>
+  )
+}
+
+export function Discussion({
+  ...props
+}: React.ComponentProps<typeof AccordionPrimitive.Root>) {
+  return <AccordionPrimitive.Root data-slot="accordion" {...props} />
+}
+
+
+demo.tsx
+import {
+  Discussion,
+  DiscussionBody,
+  DiscussionContent,
+  DiscussionExpand,
+  DiscussionItem,
+  DiscussionReplies,
+  DiscussionTitle,
+} from "@/components/ui/discussion"
+
+export default function DiscussionDemo() {
+  return (
+    <div className="w-3/4">
+      
+        <Discussion
+          defaultValue={["item-1"]}
+          type="multiple"
+          className="w-full"
+        >
+          <DiscussionItem value="item-1">
+            <DiscussionContent className="gap-2">
+             
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
+                  <DiscussionTitle className="flex gap-2 items-center">
+                    <div>Jane Smith</div>
+                    <div className="text-muted-foreground text-xs ">
+                      @janesmith
+                    </div>
+                    <span className="text-muted-foreground text-xs">•</span>
+                    <div className="text-muted-foreground text-xs ">
+                      1 hour ago
+                    </div>
+                  </DiscussionTitle>
+                  <DiscussionBody>
+                    This is a great article! Thanks for sharing your insights. I
+                    particularly enjoyed the section about accessibility best
+                    practices.
+                  </DiscussionBody>
+                </div>
+                <DiscussionExpand />
+              </div>
+            </DiscussionContent>
+            <DiscussionReplies>
+              <DiscussionItem value="item-1.1">
+                <DiscussionContent className="gap-2">
+                  
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-1">
+                      <DiscussionTitle className="flex gap-2 items-center">
+                        <div>Liam Patel</div>
+                        <div className="text-muted-foreground text-xs ">
+                          @liampatel
+                        </div>
+                        <span className="text-muted-foreground text-xs">•</span>
+                        <div className="text-muted-foreground text-xs ">
+                          34 minutes ago
+                        </div>
+                      </DiscussionTitle>
+                      <DiscussionBody>
+                        I agree! The examples were particularly helpful. Do you
+                        have any recommendations for further reading?
+                      </DiscussionBody>
+                    </div>
+                    <DiscussionExpand />
+                  </div>
+                </DiscussionContent>
+                <DiscussionReplies>
+                  <DiscussionItem value="item-1.1.1">
+                    <DiscussionContent className="gap-2">
+                     
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1">
+                          <DiscussionTitle className="flex gap-2 items-center">
+                            <div>Alex Chen</div>
+                            <div className="text-muted-foreground text-xs ">
+                              @alexchen
+                            </div>
+                            <span className="text-muted-foreground text-xs">
+                              •
+                            </span>
+                            <div className="text-muted-foreground text-xs ">
+                              26 minutes ago
+                            </div>
+                          </DiscussionTitle>
+                          <DiscussionBody>
+                            Check out the MDN docs on ARIA - they're
+                            comprehensive and well-maintained.
+                          </DiscussionBody>
+                        </div>
+                      </div>
+                    </DiscussionContent>
+                  </DiscussionItem>
+                </DiscussionReplies>
+              </DiscussionItem>
+              <DiscussionItem value="item-1.2">
+                <DiscussionContent className="gap-2">
+                  
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-1">
+                      <DiscussionTitle className="flex gap-2 items-center">
+                        <div>Sarah Wilson</div>
+                        <div className="text-muted-foreground text-xs ">
+                          @sarahwilson
+                        </div>
+                        <span className="text-muted-foreground text-xs">•</span>
+                        <div className="text-muted-foreground text-xs ">
+                          14 minutes ago
+                        </div>
+                      </DiscussionTitle>
+                      <DiscussionBody>
+                        Thanks for the detailed explanation! This will
+                        definitely help with my current project.
+                      </DiscussionBody>
+                    </div>
+                  </div>
+                </DiscussionContent>
+              </DiscussionItem>
+            </DiscussionReplies>
+          </DiscussionItem>
+        </Discussion>
+
+    </div>
+  )
+}
+
+```
+
+Install NPM dependencies:
+```bash
+lucide-react, @radix-ui/react-accordion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

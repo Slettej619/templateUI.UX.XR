@@ -1,0 +1,222 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+use-mouse-position-ref.tsx
+import { RefObject, useEffect, useRef } from "react";
+
+export const useMousePositionRef = (
+  containerRef?: RefObject<HTMLElement | SVGElement>
+) => {
+  const positionRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const updatePosition = (x: number, y: number) => {
+      if (containerRef && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const relativeX = x - rect.left;
+        const relativeY = y - rect.top;
+
+        // Calculate relative position even when outside the container
+        positionRef.current = { x: relativeX, y: relativeY };
+      } else {
+        positionRef.current = { x, y };
+      }
+    };
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      updatePosition(ev.clientX, ev.clientY);
+    };
+
+    const handleTouchMove = (ev: TouchEvent) => {
+      const touch = ev.touches[0];
+      updatePosition(touch.clientX, touch.clientY);
+    };
+
+    // Listen for both mouse and touch events
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchmove", handleTouchMove);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [containerRef]);
+
+  return positionRef;
+};
+
+
+demo.tsx
+'use client'
+
+import { useRef, useState, useEffect } from "react"
+import { motion, useMotionValue } from "framer-motion"
+import { useMousePositionRef } from "@/components/hooks/use-mouse-position-ref"
+
+function BasicDemo() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const positionRef = useMousePositionRef(containerRef)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const updatePosition = () => {
+      setPosition({ ...positionRef.current })
+    }
+    const interval = setInterval(updatePosition, 16) // ~60fps
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="space-y-2 w-[400px]">
+      <h3 className="text-lg font-medium">Basic Tracking</h3>
+      <div 
+        ref={containerRef}
+        className="h-[300px] rounded-xl border bg-muted/30 relative overflow-hidden"
+      >
+        <motion.div
+          className="w-4 h-4 bg-blue-500 rounded-full absolute"
+          style={{
+            x: position.x - 8,
+            y: position.y - 8,
+          }}
+          transition={{ type: "spring", damping: 20 }}
+        />
+        <div className="absolute bottom-4 left-4 font-mono text-sm">
+          x: {Math.round(position.x)}, y: {Math.round(position.y)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function InteractiveDemo() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const positionRef = useMousePositionRef(containerRef)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const updatePosition = () => {
+      setPosition({ ...positionRef.current })
+    }
+    const interval = setInterval(updatePosition, 16)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="space-y-2 w-[400px]">
+      <h3 className="text-lg font-medium">Interactive Elements</h3>
+      <div 
+        ref={containerRef}
+        className="h-[300px] rounded-xl border bg-muted/30 relative"
+      >
+        <motion.h2 
+          className="absolute text-3xl font-bold left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          style={{
+            rotate: (position.x - (containerRef.current?.clientWidth || 0) / 2) * 0.02,
+            scale: 1 + (position.y / (containerRef.current?.clientHeight || 1)) * 0.001
+          }}
+        >
+          Move Mouse
+        </motion.h2>
+      </div>
+    </div>
+  )
+}
+
+function GradientDemo() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const positionRef = useMousePositionRef(containerRef)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const updatePosition = () => {
+      setPosition({ ...positionRef.current })
+    }
+    const interval = setInterval(updatePosition, 16)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="space-y-2 w-[400px]">
+      <h3 className="text-lg font-medium">Dynamic Gradient</h3>
+      <div 
+        ref={containerRef}
+        className="h-[300px] rounded-xl border relative overflow-hidden"
+      >
+        <div
+          className="w-full h-full absolute transition-[background] duration-75"
+          style={{
+            background: `radial-gradient(circle at ${position.x}px ${position.y}px, rgba(59, 130, 246, 0.15), transparent 50%)`,
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          Hover to move gradient
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DocumentationCard() {
+  return (
+    <div className="space-y-4 p-6 rounded-xl border">
+      <h3 className="text-lg font-medium">useMousePositionRef</h3>
+      <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
+        {`const positionRef = useMousePositionRef(containerRef)
+
+// Access current position
+const { x, y } = positionRef.current`}
+      </pre>
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <h4 className="font-medium mb-2">Features</h4>
+          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+            <li>Reference-based updates</li>
+            <li>No re-renders</li>
+            <li>Container-relative</li>
+            <li>Touch support</li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-medium mb-2">Use Cases</h4>
+          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+            <li>Interactive animations</li>
+            <li>Cursor effects</li>
+            <li>Dynamic gradients</li>
+            <li>Mouse tracking</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export { BasicDemo, InteractiveDemo, GradientDemo, DocumentationCard }
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

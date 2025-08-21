@@ -1,0 +1,910 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+ruixen-contributors-table.tsx
+"use client";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Eye } from "lucide-react";
+
+type Contributor = {
+  name: string;
+  email: string;
+  avatar: string;
+  role: string;
+};
+
+type Project = {
+  id: string;
+  title: string;
+  repo: string;
+  status: "Active" | "Inactive" | "In Progress";
+  team: string;
+  tech: string;
+  createdAt: string;
+  contributors: Contributor[];
+};
+
+const data: Project[] = [
+    {
+      id: "1",
+      title: "ShadCN Clone",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "UI Guild",
+      tech: "Next.js",
+      createdAt: "2024-06-01",
+      contributors: [
+        {
+          name: "Srinath G",
+          email: "srinath@example.com",
+          avatar: "https://github.com/srinath.png",
+          role: "UI Lead",
+        },
+        {
+          name: "Kavya M",
+          email: "kavya@example.com",
+          avatar: "https://github.com/kavya.png",
+          role: "Designer",
+        },
+      ],
+    },
+    {
+      id: "2",
+      title: "RUIXEN Components",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "In Progress",
+      team: "Component Devs",
+      tech: "React",
+      createdAt: "2024-05-22",
+      contributors: [
+        {
+          name: "Arjun R",
+          email: "arjun@example.com",
+          avatar: "https://github.com/arjun.png",
+          role: "Developer",
+        },
+        {
+          name: "Divya S",
+          email: "divya@example.com",
+          avatar: "https://github.com/divya.png",
+          role: "QA",
+        },
+        {
+          name: "Nikhil V",
+          email: "nikhil@example.com",
+          avatar: "https://github.com/nikhil.png",
+          role: "UX",
+        },
+      ],
+    },
+    {
+      id: "3",
+      title: "CV Jobs Platform",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "CV Core",
+      tech: "Spring Boot",
+      createdAt: "2024-06-05",
+      contributors: [
+        {
+          name: "Manoj T",
+          email: "manoj@example.com",
+          avatar: "https://github.com/manoj.png",
+          role: "Backend Lead",
+        },
+      ],
+    },
+    {
+      id: "4",
+      title: "Ruixen UI Docs",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "Tech Writers",
+      tech: "Markdown + Docusaurus",
+      createdAt: "2024-04-19",
+      contributors: [
+        {
+          name: "Sneha R",
+          email: "sneha@example.com",
+          avatar: "https://github.com/sneha.png",
+          role: "Documentation",
+        },
+        {
+          name: "Vinay K",
+          email: "vinay@example.com",
+          avatar: "https://github.com/vinay.png",
+          role: "Maintainer",
+        },
+      ],
+    },
+    {
+      id: "5",
+      title: "Job Portal Analytics",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "Data Squad",
+      tech: "Python",
+      createdAt: "2024-03-30",
+      contributors: [
+        {
+          name: "Aarav N",
+          email: "aarav@example.com",
+          avatar: "https://github.com/aarav.png",
+          role: "Data Engineer",
+        },
+      ],
+    },
+    {
+      id: "6",
+      title: "Real-time Chat",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "Infra",
+      tech: "Socket.io",
+      createdAt: "2024-06-03",
+      contributors: [
+        {
+          name: "Neha L",
+          email: "neha@example.com",
+          avatar: "https://github.com/neha.png",
+          role: "DevOps",
+        },
+        {
+          name: "Raghav I",
+          email: "raghav@example.com",
+          avatar: "https://github.com/raghav.png",
+          role: "NodeJS Engineer",
+        },
+      ],
+    },
+    {
+      id: "7",
+      title: "RUX Theme Builder",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "Design Systems",
+      tech: "Tailwind CSS",
+      createdAt: "2024-05-10",
+      contributors: [
+        {
+          name: "Ishita D",
+          email: "ishita@example.com",
+          avatar: "https://github.com/ishita.png",
+          role: "Design Engineer",
+        },
+      ],
+    },
+    {
+      id: "8",
+      title: "Admin Dashboard",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "Dashboard Core",
+      tech: "Remix",
+      createdAt: "2024-05-28",
+      contributors: [
+        {
+          name: "Rahul B",
+          email: "rahul@example.com",
+          avatar: "https://github.com/rahul.png",
+          role: "Fullstack",
+        },
+      ],
+    },
+    {
+      id: "9",
+      title: "OpenCV Blog Engine",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "Platform",
+      tech: "Node.js",
+      createdAt: "2024-01-18",
+      contributors: [
+        {
+          name: "Sanya A",
+          email: "sanya@example.com",
+          avatar: "https://github.com/sanya.png",
+          role: "API Developer",
+        },
+        {
+          name: "Harshit V",
+          email: "harshit@example.com",
+          avatar: "https://github.com/harshit.png",
+          role: "Platform Architect",
+        },
+      ],
+    },
+    {
+      id: "10",
+      title: "Dark Mode Toggle Package",
+      repo: "https://github.com/ruixenui/ruixen-buttons",
+      status: "Active",
+      team: "Component Devs",
+      tech: "TypeScript",
+      createdAt: "2024-06-02",
+      contributors: [
+        {
+          name: "Meera C",
+          email: "meera@example.com",
+          avatar: "https://github.com/meera.png",
+          role: "Package Maintainer",
+        },
+      ],
+    },
+  ];
+  
+
+const allColumns = [
+  "Project",
+  "Repository",
+  "Team",
+  "Tech",
+  "Created At",
+  "Contributors",
+  "Status",
+] as const;
+
+function ContributorsTable() {
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([...allColumns]);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [techFilter, setTechFilter] = useState("");
+
+  const filteredData = data.filter((project) => {
+    return (
+      (!statusFilter || project.status === statusFilter) &&
+      (!techFilter || project.tech.toLowerCase().includes(techFilter.toLowerCase()))
+    );
+  });
+
+  const toggleColumn = (col: string) => {
+    setVisibleColumns((prev) =>
+      prev.includes(col)
+        ? prev.filter((c) => c !== col)
+        : [...prev, col]
+    );
+  };
+
+  return (
+        <div className="container my-10 space-y-4 p-4 border border-border rounded-lg bg-background shadow-sm overflow-x-auto">
+      <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
+        <div className="flex gap-2 flex-wrap">
+          <Input
+            placeholder="Filter by technology..."
+            value={techFilter}
+            onChange={(e) => setTechFilter(e.target.value)}
+            className="w-48"
+          />
+          <Input
+            placeholder="Filter by status..."
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-48"
+          />
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              Columns
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-48">
+            {allColumns.map((col) => (
+              <DropdownMenuCheckboxItem
+                key={col}
+                checked={visibleColumns.includes(col)}
+                onCheckedChange={() => toggleColumn(col)}
+              >
+                {col}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <Table className="w-full">
+        <TableHeader>
+          <TableRow>
+            {visibleColumns.includes("Project") && <TableHead className="w-[180px]">Project</TableHead>}
+            {visibleColumns.includes("Repository") && <TableHead className="w-[220px]">Repository</TableHead>}
+            {visibleColumns.includes("Team") && <TableHead className="w-[150px]">Team</TableHead>}
+            {visibleColumns.includes("Tech") && <TableHead className="w-[150px]">Tech</TableHead>}
+            {visibleColumns.includes("Created At") && <TableHead className="w-[120px]">Created At</TableHead>}
+            {visibleColumns.includes("Contributors") && <TableHead className="w-[150px]">Contributors</TableHead>}
+            {visibleColumns.includes("Status") && <TableHead className="w-[100px]">Status</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredData.length ? (
+            filteredData.map((project) => (
+              <TableRow key={project.id}>
+                {visibleColumns.includes("Project") && (
+                  <TableCell className="font-medium whitespace-nowrap">{project.title}</TableCell>
+                )}
+                {visibleColumns.includes("Repository") && (
+                  <TableCell className="whitespace-nowrap">
+                    <a
+                      href={project.repo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline"
+                    >
+                      {project.repo.replace("https://", "")}
+                    </a>
+                  </TableCell>
+                )}
+                {visibleColumns.includes("Team") && <TableCell className="whitespace-nowrap">{project.team}</TableCell>}
+                {visibleColumns.includes("Tech") && <TableCell className="whitespace-nowrap">{project.tech}</TableCell>}
+                {visibleColumns.includes("Created At") && <TableCell className="whitespace-nowrap">{project.createdAt}</TableCell>}
+                {visibleColumns.includes("Contributors") && (
+                  <TableCell className="min-w-[120px]">
+                    <div className="flex -space-x-2">
+                      <TooltipProvider>
+                        {project.contributors.map((contributor, idx) => (
+                          <Tooltip key={idx}>
+                            <TooltipTrigger asChild>
+                              <Avatar className="h-8 w-8 ring-2 ring-white hover:z-10">
+                                <AvatarImage src={contributor.avatar} alt={contributor.name} />
+                                <AvatarFallback>{contributor.name[0]}</AvatarFallback>
+                              </Avatar>
+                            </TooltipTrigger>
+                            <TooltipContent className="text-sm">
+                              <p className="font-semibold">{contributor.name}</p>
+                              <p className="text-xs text-muted-foreground">{contributor.email}</p>
+                              <p className="text-xs italic">{contributor.role}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ))}
+                      </TooltipProvider>
+                    </div>
+                  </TableCell>
+                )}
+                {visibleColumns.includes("Status") && (
+                  <TableCell className="whitespace-nowrap">
+                    <Badge
+                      className={cn(
+                        "whitespace-nowrap",
+                        project.status === "Active" && "bg-green-500 text-white",
+                        project.status === "Inactive" && "bg-gray-400 text-white",
+                        project.status === "In Progress" && "bg-yellow-500 text-white",
+                      )}
+                    >
+                      {project.status}
+                    </Badge>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={visibleColumns.length} className="text-center py-6">
+                No results found.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+export default ContributorsTable;
+
+demo.tsx
+import ContributorsTable from "@/components/ui/ruixen-contributors-table";
+
+const DemoOne = () => {
+  return <ContributorsTable />;
+};
+
+export { DemoOne };
+
+```
+
+Copy-paste these files for dependencies:
+```tsx
+originui/table
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
+  ({ className, ...props }, ref) => (
+    <div className="relative w-full overflow-auto">
+      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+    </div>
+  ),
+);
+Table.displayName = "Table";
+
+const TableHeader = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => <thead ref={ref} className={cn(className)} {...props} />);
+TableHeader.displayName = "TableHeader";
+
+const TableBody = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <tbody ref={ref} className={cn("[&_tr:last-child]:border-0", className)} {...props} />
+));
+TableBody.displayName = "TableBody";
+
+const TableFooter = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <tfoot
+    ref={ref}
+    className={cn(
+      "border-t border-border bg-muted/50 font-medium [&>tr]:last:border-b-0",
+      className,
+    )}
+    {...props}
+  />
+));
+TableFooter.displayName = "TableFooter";
+
+const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
+  ({ className, ...props }, ref) => (
+    <tr
+      ref={ref}
+      className={cn(
+        "border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+        className,
+      )}
+      {...props}
+    />
+  ),
+);
+TableRow.displayName = "TableRow";
+
+const TableHead = React.forwardRef<
+  HTMLTableCellElement,
+  React.ThHTMLAttributes<HTMLTableCellElement>
+>(({ className, ...props }, ref) => (
+  <th
+    ref={ref}
+    className={cn(
+      "h-12 px-3 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:w-px [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-0.5",
+      className,
+    )}
+    {...props}
+  />
+));
+TableHead.displayName = "TableHead";
+
+const TableCell = React.forwardRef<
+  HTMLTableCellElement,
+  React.TdHTMLAttributes<HTMLTableCellElement>
+>(({ className, ...props }, ref) => (
+  <td
+    ref={ref}
+    className={cn(
+      "p-3 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-0.5",
+      className,
+    )}
+    {...props}
+  />
+));
+TableCell.displayName = "TableCell";
+
+const TableCaption = React.forwardRef<
+  HTMLTableCaptionElement,
+  React.HTMLAttributes<HTMLTableCaptionElement>
+>(({ className, ...props }, ref) => (
+  <caption ref={ref} className={cn("mt-4 text-sm text-muted-foreground", className)} {...props} />
+));
+TableCaption.displayName = "TableCaption";
+
+export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow };
+
+```
+```tsx
+originui/tooltip
+"use client";
+
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+const TooltipProvider = TooltipPrimitive.Provider;
+
+const Tooltip = TooltipPrimitive.Root;
+
+const TooltipTrigger = TooltipPrimitive.Trigger;
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & {
+    showArrow?: boolean;
+  }
+>(({ className, sideOffset = 4, showArrow = false, ...props }, ref) => (
+  <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "relative z-50 max-w-[280px] rounded-lg border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className,
+      )}
+      {...props}
+    >
+      {props.children}
+      {showArrow && (
+        <TooltipPrimitive.Arrow className="-my-px fill-popover drop-shadow-[0_1px_0_hsl(var(--border))]" />
+      )}
+    </TooltipPrimitive.Content>
+  </TooltipPrimitive.Portal>
+));
+TooltipContent.displayName = TooltipPrimitive.Content.displayName;
+
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
+
+```
+```tsx
+originui/avatar
+"use client";
+
+import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className)}
+    {...props}
+  />
+));
+Avatar.displayName = AvatarPrimitive.Root.displayName;
+
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full", className)}
+    {...props}
+  />
+));
+AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-[inherit] bg-secondary text-xs",
+      className,
+    )}
+    {...props}
+  />
+));
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
+
+export { Avatar, AvatarFallback, AvatarImage };
+
+```
+```tsx
+originui/badge
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+const badgeVariants = cva(
+  "inline-flex items-center justify-center rounded-full border px-1.5 text-xs font-medium leading-normal transition-colors outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
+  {
+    variants: {
+      variant: {
+        default: "border-transparent bg-primary text-primary-foreground",
+        secondary: "border-transparent bg-secondary text-secondary-foreground",
+        destructive: "border-transparent bg-destructive text-destructive-foreground",
+        outline: "text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+);
+
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function Badge({ className, variant, ...props }: BadgeProps) {
+  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+}
+
+export { Badge, badgeVariants };
+
+```
+```tsx
+chetanverma16/dropdown-menu
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+type DropdownMenuProps = {
+  options: {
+    label: string;
+    onClick: () => void;
+    Icon?: React.ReactNode;
+  }[];
+  children: React.ReactNode;
+};
+
+const DropdownMenu = ({ options, children }: DropdownMenuProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="relative">
+      <Button
+        onClick={toggleDropdown}
+        className="px-4 py-2 bg-[#11111198] hover:bg-[#111111d1] shadow-[0_0_20px_rgba(0,0,0,0.2)] border-none rounded-xl backdrop-blur-sm"
+      >
+        {children ?? "Menu"}
+        <>
+          <motion.span
+            className="ml-2"
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut", type: "spring" }}
+          >
+            <ChevronDown className="h-4 w-4" />
+          </motion.span>
+        </>
+      </Button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ y: -5, scale: 0.95, filter: "blur(10px)" }}
+            animate={{ y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ y: -5, scale: 0.95, opacity: 0, filter: "blur(10px)" }}
+            transition={{ duration: 0.6, ease: "circInOut", type: "spring" }}
+            className="absolute z-10 w-48 mt-2 p-1 bg-[#11111198] rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.2)] backdrop-blur-sm flex flex-col gap-2"
+          >
+            {options && options.length > 0 ? (
+              options.map((option, index) => (
+                <motion.button
+                  initial={{
+                    opacity: 0,
+                    x: 10,
+                    scale: 0.95,
+                    filter: "blur(10px)",
+                  }}
+                  animate={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
+                  exit={{
+                    opacity: 0,
+                    x: 10,
+                    scale: 0.95,
+                    filter: "blur(10px)",
+                  }}
+                  transition={{
+                    duration: 0.4,
+                    delay: index * 0.1,
+                    ease: "easeInOut",
+                    type: "spring",
+                  }}
+                  whileHover={{
+                    backgroundColor: "#11111140",
+                    transition: {
+                      duration: 0.4,
+                      ease: "easeInOut",
+                    },
+                  }}
+                  whileTap={{
+                    scale: 0.95,
+                    transition: {
+                      duration: 0.2,
+                      ease: "easeInOut",
+                    },
+                  }}
+                  key={option.label}
+                  onClick={option.onClick}
+                  className="px-2 py-3 cursor-pointer text-white text-sm rounded-lg w-full text-left flex items-center gap-x-2"
+                >
+                  {option.Icon}
+                  {option.label}
+                </motion.button>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-white text-xs">No options</div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export { DropdownMenu };
+
+```
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+```
+```tsx
+kokonutd/button-colorful
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { ArrowUpRight } from "lucide-react";
+
+interface ButtonColorfulProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    label?: string;
+}
+
+export function ButtonColorful({
+    className,
+    label = "Explore Components",
+    ...props
+}: ButtonColorfulProps) {
+    return (
+        <Button
+            className={cn(
+                "relative h-10 px-4 overflow-hidden",
+                "bg-zinc-900 dark:bg-zinc-100",
+                "transition-all duration-200",
+                "group",
+                className
+            )}
+            {...props}
+        >
+            {/* Gradient background effect */}
+            <div
+                className={cn(
+                    "absolute inset-0",
+                    "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500",
+                    "opacity-40 group-hover:opacity-80",
+                    "blur transition-opacity duration-500"
+                )}
+            />
+
+            {/* Content */}
+            <div className="relative flex items-center justify-center gap-2">
+                <span className="text-white dark:text-zinc-900">{label}</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-white/90 dark:text-zinc-900/90" />
+            </div>
+        </Button>
+    );
+}
+
+export { ButtonColorful }
+```
+
+Install NPM dependencies:
+```bash
+lucide-react, @radix-ui/react-tooltip, @radix-ui/react-avatar, class-variance-authority, framer-motion, @radix-ui/react-slot
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

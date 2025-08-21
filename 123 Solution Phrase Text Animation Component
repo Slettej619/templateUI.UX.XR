@@ -1,0 +1,362 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+text-color.tsx
+"use client";
+
+import React from "react";
+import { Plus } from "lucide-react"; 
+
+export function TextColor() {
+  return (
+    <div>
+      <div className=" mb-10 mt-4 md:mt-6">
+        <div className="px-2">
+          <div className="relative p-8 w-full h-full border border-slate-200 dark:border-slate-800 [mask-image:radial-gradient(200rem_24rem_at_center,white,transparent)]">
+            <h1 className="tracking-tighter flex select-none px-3 py-2 flex-col text-center text-7xl font-extrabold leading-none sm:text-8xl md:flex-col lg:flex-row">
+              <Plus className="absolute -left-4 -top-4 h-8 w-8 text-indigo-500" />
+              <Plus className="absolute -bottom-4 -left-4 h-8 w-8 text-indigo-500" />
+              <Plus className="absolute -right-4 -top-4 h-8 w-8 text-indigo-500" />
+              <Plus className="absolute -bottom-4 -right-4 h-8 w-8 text-indigo-500" />
+
+              <span
+                data-content="Develop."
+                className="before:animate-gradient-background-1 relative before:absolute before:bottom-4 before:left-0 before:top-0 before:z-0  before:w-full before:px-2 before:content-[attr(data-content)]  sm:before:top-0"
+              >
+                <span className="from-gradient-1-start to-gradient-1-end animate-gradient-foreground-1 bg-gradient-to-r bg-clip-text px-2 text-transparent sm:px-5">
+                Develop.
+                </span>
+              </span>
+              <span
+                data-content="Preview."
+                className="before:animate-gradient-background-2 relative before:absolute before:bottom-0 before:left-0 before:top-0 before:z-0 before:w-full before:px-2 before:content-[attr(data-content)] sm:before:top-0"
+              >
+                <span className="from-gradient-2-start to-gradient-2-end animate-gradient-foreground-2 bg-gradient-to-r bg-clip-text px-2 text-transparent sm:px-5">
+                Preview.
+                </span>
+              </span>
+              <span
+                data-content="Ship."
+                className="before:animate-gradient-background-3 relative before:absolute before:bottom-1 before:left-0 before:top-0 before:z-0 before:w-full before:px-2 before:content-[attr(data-content)] sm:before:top-0"
+              >
+                <span className="from-gradient-3-start to-gradient-3-end animate-gradient-foreground-3 bg-gradient-to-r bg-clip-text px-2 text-transparent sm:px-5">
+                Ship.
+                </span>
+              </span>
+            </h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+demo.tsx
+import { TextColor } from "@/components/ui/text-color";
+
+export function HomePage() {
+  return (
+    <main className="overflow-hidden">
+      <TextColor />
+    </main>
+  );
+}
+
+```
+
+Install NPM dependencies:
+```bash
+lucide-react
+```
+
+Extend existing globals.css with this code:
+```css
+.relative {
+  position: relative;
+}
+
+@keyframes gradient-foreground-1 {
+  from,
+  16.667%,
+  to {
+    opacity: 1;
+  }
+  33.333%,
+  83.333% {
+    opacity: 0;
+  }
+}
+
+.animate-gradient-foreground-1 {
+  animation: gradient-foreground-1 8s infinite;
+}
+
+@keyframes gradient-foreground-2 {
+  from,
+  to {
+    opacity: 0;
+  }
+  33.333%,
+  50% {
+    opacity: 1;
+  }
+  16.667%,
+  66.667% {
+    opacity: 0;
+  }
+}
+
+.animate-gradient-foreground-2 {
+  animation: gradient-foreground-2 8s infinite;
+}
+
+@keyframes gradient-foreground-3 {
+  from,
+  50%,
+  to {
+    opacity: 0;
+  }
+  66.667%,
+  83.333% {
+    opacity: 1;
+  }
+}
+
+.animate-gradient-foreground-3 {
+  animation: gradient-foreground-3 8s infinite;
+}
+
+.select-none {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+/* Neon-style gradients */
+.from-gradient-1-start {
+  --tw-gradient-from: #39ff14; /* Neon green */
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(57, 255, 20, 0));
+}
+
+.to-gradient-1-end {
+  --tw-gradient-to: #00ffff; /* Neon cyan */
+}
+
+.from-gradient-2-start {
+  --tw-gradient-from: #ff073a; /* Neon red-pink */
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(255, 7, 58, 0));
+}
+
+.to-gradient-2-end {
+  --tw-gradient-to: #ff6ec7; /* Neon magenta */
+}
+
+.from-gradient-3-start {
+  --tw-gradient-from: #faff00; /* Neon yellow */
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(250, 255, 0, 0));
+}
+
+.to-gradient-3-end {
+  --tw-gradient-to: #00f0ff; /* Electric blue */
+}
+
+/* AI Variants */
+.from-gradient-1-ai {
+  --tw-gradient-from: #39ff14;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(57, 255, 20, 0));
+}
+
+.to-gradient-1-ai {
+  --tw-gradient-to: #ff00ff;
+}
+
+.from-gradient-2-ai {
+  --tw-gradient-from: #ff6ec7;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(255, 110, 199, 0));
+}
+
+.to-gradient-2-ai {
+  --tw-gradient-to: #00fffb;
+}
+
+.from-gradient-3-ai {
+  --tw-gradient-from: #faff00;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(250, 255, 0, 0));
+}
+
+.to-gradient-3-ai {
+  --tw-gradient-to: #00f0ff;
+}
+
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.py-14 {
+  padding-top: 3.5rem;
+  padding-bottom: 3.5rem;
+}
+
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-\[23vw\] {
+  font-size: 12vw;
+}
+
+.leading-none {
+  line-height: 1;
+}
+
+.tracking-tightest {
+  letter-spacing: -0.09em;
+}
+
+.text-transparent {
+  color: transparent;
+}
+
+.before\:absolute::before {
+  content: "";
+  position: absolute;
+}
+
+.before\:top-0::before {
+  content: "";
+  top: 0px;
+}
+
+.before\:bottom-0::before {
+  content: "";
+  bottom: 0px;
+}
+
+.before\:left-0::before {
+  content: "";
+  left: 0px;
+}
+
+.before\:z-0::before {
+  content: "";
+  z-index: 0;
+}
+
+.before\:w-full::before {
+  content: "";
+  width: 100%;
+}
+
+@keyframes gradient-background-1 {
+  from,
+  16.667%,
+  to {
+    opacity: 0;
+  }
+  25%,
+  91.667% {
+    opacity: 1;
+  }
+}
+
+.before\:animate-gradient-background-1::before {
+  content: "";
+  animation: gradient-background-1 8s infinite;
+}
+
+@keyframes gradient-background-2 {
+  from,
+  to {
+    opacity: 1;
+  }
+  33.333%,
+  50% {
+    opacity: 0;
+  }
+  25%,
+  58.333% {
+    opacity: 1;
+  }
+}
+
+.before\:animate-gradient-background-2::before {
+  content: "";
+  animation: gradient-background-2 8s infinite;
+}
+
+@keyframes gradient-background-3 {
+  from,
+  58.333%,
+  91.667%,
+  to {
+    opacity: 1;
+  }
+  66.667%,
+  83.333% {
+    opacity: 0;
+  }
+}
+
+.before\:animate-gradient-background-3::before {
+  content: "";
+  animation: gradient-background-3 8s infinite;
+}
+
+.before\:px-2::before {
+  content: "";
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.before\:text-center::before {
+  content: "";
+  text-align: center;
+}
+
+.before\:text-black::before {
+  content: "";
+  --tw-text-opacity: 1;
+  color: rgba(0, 0, 0, var(--tw-text-opacity));
+}
+
+.before\:content-\[attr\(data-content\)\]::before {
+  content: attr(data-content);
+}
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

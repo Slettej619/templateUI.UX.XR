@@ -1,0 +1,240 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+link-preview.tsx
+"use client";
+import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
+import Image from "next/image";
+import { encode } from "qss";
+import React from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+type LinkPreviewProps = {
+  children: React.ReactNode;
+  url: string;
+  className?: string;
+  width?: number;
+  height?: number;
+  quality?: number;
+  layout?: string;
+} & (
+  | { isStatic: true; imageSrc: string }
+  | { isStatic?: false; imageSrc?: never }
+);
+
+export const LinkPreview = ({
+  children,
+  url,
+  className,
+  width = 200,
+  height = 125,
+  quality = 50,
+  layout = "fixed",
+  isStatic = false,
+  imageSrc = "",
+}: LinkPreviewProps) => {
+  let src;
+  if (!isStatic) {
+    const params = encode({
+      url,
+      screenshot: true,
+      meta: false,
+      embed: "screenshot.url",
+      colorScheme: "dark",
+      "viewport.isMobile": true,
+      "viewport.deviceScaleFactor": 1,
+      "viewport.width": width * 3,
+      "viewport.height": height * 3,
+    });
+    src = `https://api.microlink.io/?${params}`;
+  } else {
+    src = imageSrc;
+  }
+
+  const [isOpen, setOpen] = React.useState(false);
+
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const springConfig = { stiffness: 100, damping: 15 };
+  const x = useMotionValue(0);
+
+  const translateX = useSpring(x, springConfig);
+
+  const handleMouseMove = (event: any) => {
+    const targetRect = event.target.getBoundingClientRect();
+    const eventOffsetX = event.clientX - targetRect.left;
+    const offsetFromCenter = (eventOffsetX - targetRect.width / 2) / 2; // Reduce the effect to make it subtle
+    x.set(offsetFromCenter);
+  };
+
+  return (
+    <>
+      {isMounted ? (
+        <div className="hidden">
+          <Image
+            src={src}
+            width={width}
+            height={height}
+            quality={quality}
+            layout={layout}
+            priority={true}
+            alt="hidden image"
+          />
+        </div>
+      ) : null}
+
+      <HoverCardPrimitive.Root
+        openDelay={50}
+        closeDelay={100}
+        onOpenChange={(open) => {
+          setOpen(open);
+        }}
+      >
+        <HoverCardPrimitive.Trigger
+          onMouseMove={handleMouseMove}
+          className={cn("text-black dark:text-white", className)}
+          href={url}
+        >
+          {children}
+        </HoverCardPrimitive.Trigger>
+
+        <HoverCardPrimitive.Content
+          className="[transform-origin:var(--radix-hover-card-content-transform-origin)]"
+          side="top"
+          align="center"
+          sideOffset={10}
+        >
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.6 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: {
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20,
+                  },
+                }}
+                exit={{ opacity: 0, y: 20, scale: 0.6 }}
+                className="shadow-xl rounded-xl"
+                style={{
+                  x: translateX,
+                }}
+              >
+                <Link
+                  href={url}
+                  className="block p-1 bg-white border-2 border-transparent shadow rounded-xl hover:border-neutral-200 dark:hover:border-neutral-800"
+                  style={{ fontSize: 0 }}
+                >
+                  <Image
+                    src={isStatic ? imageSrc : src}
+                    width={width}
+                    height={height}
+                    quality={quality}
+                    layout={layout}
+                    priority={true}
+                    className="rounded-lg"
+                    alt="preview image"
+                  />
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </HoverCardPrimitive.Content>
+      </HoverCardPrimitive.Root>
+    </>
+  );
+};
+
+
+demo.tsx
+"use client";
+import React from "react";
+import { LinkPreview } from "@/components/ui/link-preview";
+
+export function LinkPreviewDemoSecond() {
+  return (
+    <div className="flex justify-center items-start h-[40rem] flex-col px-4">
+      <p className="text-neutral-500 dark:text-neutral-400 text-xl md:text-3xl max-w-3xl  text-left mb-10">
+        Visit{" "}
+        <LinkPreview
+          url="https://ui.aceternity.com"
+          className="font-bold bg-clip-text text-transparent bg-gradient-to-br from-purple-500 to-pink-500"
+        >
+          Aceternity UI
+        </LinkPreview>{" "}
+        and for amazing Tailwind and Framer Motion components.
+      </p>
+
+      <p className="text-neutral-500 dark:text-neutral-400 text-xl md:text-3xl max-w-3xl  text-left ">
+        I listen to{" "}
+        <LinkPreview
+          url="https://www.youtube.com/watch?v=S-z6vyR89Ig&list=RDMM&index=3"
+          imageSrc="https://ui.aceternity.com/_next/image?url=%2Fimages%2Fimraan-hashmi.jpeg&w=640&q=50"
+          isStatic
+          className="font-bold"
+        >
+          this guy
+        </LinkPreview>{" "}
+        and I watch{" "}
+        <LinkPreview
+          url="/templates"
+          imageSrc="https://ui.aceternity.com/_next/image?url=%2Fimages%2Ffight-club.jpeg&w=640&q=50"
+          isStatic
+          className="font-bold"
+        >
+          this movie
+        </LinkPreview>{" "}
+        twice a day
+      </p>
+    </div>
+  );
+}
+
+```
+
+Install NPM dependencies:
+```bash
+qss, framer-motion, @radix-ui/react-hover-card
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

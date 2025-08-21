@@ -1,0 +1,466 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+ruixen-popover-02.tsx
+"use client";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Bell, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import clsx from "clsx";
+
+const notifications = [
+  {
+    title: "Welcome to the app!",
+    message: "Let's get started by completing your profile.",
+    time: "Just now",
+  },
+  {
+    title: "Your plan is active",
+    message: "You're now on the Pro plan.",
+    time: "5 minutes ago",
+  },
+  {
+    title: "Try Ruixen!",
+    message: "Explore powerful UI tools for modern apps.",
+    time: "Today",
+    cta: {
+      text: "@ruixen",
+      href: "https://ruixen.com/?utm_source=21stdev&utm_medium=popover&utm_campaign=ruixen",
+    },
+  },
+  {
+    title: "Invite your team",
+    message: "You can add up to 10 team members for free.",
+    time: "1 day ago",
+  },
+];
+
+export default function Popover_02() {
+  const [step, setStep] = useState(0);
+  const maxSteps = notifications.length;
+
+  const next = () => setStep((prev) => Math.min(prev + 1, maxSteps - 1));
+  const back = () => setStep((prev) => Math.max(prev - 1, 0));
+
+  const current = notifications[step];
+
+  return (
+    <div className="flex justify-center h-screen items-center gap-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline">
+            <Bell size={16} className="mr-2" />
+            Notifications
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          className="w-[350px] border border-gray-200 dark:border-gray-800 p-0"
+        >
+          <ScrollArea className="max-h-80 p-4">
+            <div className="space-y-3">
+              <div>
+                <p className="font-medium text-sm text-gray-800 dark:text-gray-100">
+                  {current.title}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {current.message}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">{current.time}</p>
+                {current.cta && (
+                  <Link
+                    href={current.cta.href}
+                    target="_blank"
+                    className="text-blue-600 text-sm hover:underline mt-2 inline-block"
+                  >
+                    {current.cta.text}
+                  </Link>
+                )}
+              </div>
+            </div>
+          </ScrollArea>
+
+          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={back}
+              disabled={step === 0}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {step + 1} / {maxSteps}
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={next}
+              disabled={step === maxSteps - 1}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+
+demo.tsx
+"use client";
+
+import Popover_02 from "@/components/ui/ruixen-popover-02";
+
+export default function DemoOne() {
+  return <Popover_02 />;
+}
+
+```
+
+Copy-paste these files for dependencies:
+```tsx
+originui/button
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground shadow-sm shadow-black/5 hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm shadow-black/5 hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background shadow-sm shadow-black/5 hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm shadow-black/5 hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-lg px-3 text-xs",
+        lg: "h-10 rounded-lg px-8",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+    );
+  },
+);
+Button.displayName = "Button";
+
+export { Button, buttonVariants };
+
+```
+```tsx
+originui/popover
+"use client";
+
+import * as PopoverPrimitive from "@radix-ui/react-popover";
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+const Popover = PopoverPrimitive.Root;
+
+const PopoverTrigger = PopoverPrimitive.Trigger;
+
+const PopoverAnchor = PopoverPrimitive.Anchor;
+
+const PopoverContent = React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
+    showArrow?: boolean;
+  }
+>(({ className, align = "center", sideOffset = 4, showArrow = false, ...props }, ref) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 max-h-[var(--radix-popover-content-available-height)] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-lg shadow-black/5 outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className,
+      )}
+      {...props}
+    >
+      {props.children}
+      {showArrow && (
+        <PopoverPrimitive.Arrow className="-my-px fill-popover drop-shadow-[0_1px_0_hsl(var(--border))]" />
+      )}
+    </PopoverPrimitive.Content>
+  </PopoverPrimitive.Portal>
+));
+PopoverContent.displayName = PopoverPrimitive.Content.displayName;
+
+export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };
+
+```
+```tsx
+preetsuthar17/scroll-area
+"use client";
+
+import * as React from "react";
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const scrollAreaVariants = cva("relative overflow-hidden", {
+  variants: {
+    orientation: {
+      vertical: "h-full",
+      horizontal: "w-full",
+      both: "h-full w-full",
+    },
+  },
+  defaultVariants: {
+    orientation: "vertical",
+  },
+});
+
+const scrollBarVariants = cva("flex touch-none select-none transition-colors", {
+  variants: {
+    orientation: {
+      vertical: "h-full w-2.5 border-l border-l-transparent p-[1px]",
+      horizontal: "h-2.5 w-full border-t border-t-transparent p-[1px]",
+    },
+  },
+  defaultVariants: {
+    orientation: "vertical",
+  },
+});
+
+export interface ScrollAreaProps
+  extends React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>,
+    VariantProps<typeof scrollAreaVariants> {
+  scrollHideDelay?: number;
+  type?: "auto" | "always" | "scroll" | "hover";
+}
+
+const ScrollArea = React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.Root>,
+  ScrollAreaProps
+>(
+  (
+    {
+      className,
+      children,
+      orientation,
+      scrollHideDelay = 600,
+      type = "hover",
+      ...props
+    },
+    ref
+  ) => (
+    <ScrollAreaPrimitive.Root
+      ref={ref}
+      className={cn(scrollAreaVariants({ orientation }), className)}
+      {...props}
+    >
+      <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
+        {children}
+      </ScrollAreaPrimitive.Viewport>
+      <ScrollBar
+        orientation="vertical"
+        type={type}
+        scrollHideDelay={scrollHideDelay}
+      />
+      {(orientation === "horizontal" || orientation === "both") && (
+        <ScrollBar
+          orientation="horizontal"
+          type={type}
+          scrollHideDelay={scrollHideDelay}
+        />
+      )}
+      <ScrollAreaPrimitive.Corner />
+    </ScrollAreaPrimitive.Root>
+  )
+);
+
+ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName;
+
+interface ScrollBarProps
+  extends React.ComponentPropsWithoutRef<
+    typeof ScrollAreaPrimitive.ScrollAreaScrollbar
+  > {
+  scrollHideDelay?: number;
+  type?: "auto" | "always" | "scroll" | "hover";
+}
+
+const ScrollBar = React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
+  ScrollBarProps
+>(
+  (
+    { className, orientation = "vertical", scrollHideDelay, type, ...props },
+    ref
+  ) => {
+    return (
+      <ScrollAreaPrimitive.ScrollAreaScrollbar
+        ref={ref}
+        orientation={orientation}
+        className={cn(
+          scrollBarVariants({ orientation }),
+          "hover:bg-accent",
+          className
+        )}
+        {...(scrollHideDelay && { scrollHideDelay })}
+        {...(type && { type })}
+        {...props}
+      >
+        <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border hover:bg-foreground/30 transition-colors" />
+      </ScrollAreaPrimitive.ScrollAreaScrollbar>
+    );
+  }
+);
+
+ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName;
+
+export { ScrollArea, ScrollBar, scrollAreaVariants };
+```
+
+Install NPM dependencies:
+```bash
+clsx, next, lucide-react, @radix-ui/react-slot, class-variance-authority, @radix-ui/react-popover, @radix-ui/react-scroll-area
+```
+
+Extend existing Tailwind 4 index.css with this code (or if project uses Tailwind 3, extend tailwind.config.js or globals.css):
+```css
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-color-fd-card: var(----color-fd-card);
+  --color-color-fd-background: var(----color-fd-background);
+  --color-hu-ring: var(----hu-ring);
+  --color-hu-input: var(----hu-input);
+  --color-hu-border: var(----hu-border);
+  --color-hu-destructive-foreground: var(----hu-destructive-foreground);
+  --color-hu-destructive: var(----hu-destructive);
+  --color-hu-accent-foreground: var(----hu-accent-foreground);
+  --color-hu-accent: var(----hu-accent);
+  --color-hu-muted-foreground: var(----hu-muted-foreground);
+  --color-hu-muted: var(----hu-muted);
+  --color-hu-secondary-foreground: var(----hu-secondary-foreground);
+  --color-hu-secondary: var(----hu-secondary);
+  --color-hu-primary-foreground: var(----hu-primary-foreground);
+  --color-hu-primary: var(----hu-primary);
+  --color-hu-card-foreground: var(----hu-card-foreground);
+  --color-hu-card: var(----hu-card);
+  --color-hu-foreground: var(----hu-foreground);
+  --color-hu-background: var(----hu-background);
+  --card-radius: var(----card-radius);
+  --radius: var(----radius);
+  --hu-font-jetbrains: var(----hu-font-jetbrains);
+  --hu-font-geist: var(----hu-font-geist);
+}
+
+:root {
+  --hu-font-geist: var(--font-geist);
+  --hu-font-jetbrains: var(--font-jetbrains-mono);
+  --card-radius: 1rem;
+  --hu-background: hsl(0, 0%, 100%);
+  --hu-foreground: hsl(0, 0%, 14%);
+  --hu-card: hsl(0, 0%, 99%);
+  --hu-card-foreground: hsl(0, 0%, 14%);
+  --hu-primary: hsl(235, 100%, 60%);
+  --hu-primary-foreground: hsl(0, 0%, 98%);
+  --hu-secondary: hsl(0, 0%, 97%);
+  --hu-secondary-foreground: hsl(0, 0%, 20%);
+  --hu-muted: hsl(0, 0%, 97%);
+  --hu-muted-foreground: hsl(0, 0%, 56%);
+  --hu-accent: hsl(0, 0%, 96%);
+  --hu-accent-foreground: hsl(0, 0%, 20%);
+  --hu-destructive: hsl(9, 96%, 47%);
+  --hu-destructive-foreground: hsl(0, 0%, 98%);
+  --hu-border: hsl(0, 0%, 92%);
+  --hu-input: hsl(0, 0%, 100%);
+  --hu-ring: hsl(0, 0%, 71%);
+  --color-fd-background: hsl(var(--hu-background));
+  --color-fd-card: hsl(var(--hu-background));
+}
+
+.dark {
+  --hu-background: hsl(0, 0%, 7%);
+  --hu-foreground: hsl(0, 0%, 100%);
+  --hu-card: hsl(0, 0%, 9%);
+  --hu-card-foreground: hsl(0, 0%, 100%);
+  --hu-primary: hsl(235, 100%, 60%);
+  --hu-primary-foreground: hsl(0, 0%, 98%);
+  --hu-secondary: hsl(0, 0%, 15%);
+  --hu-secondary-foreground: hsl(0, 0%, 100%);
+  --hu-muted: hsl(0, 0%, 15%);
+  --hu-muted-foreground: hsl(0, 0%, 71%);
+  --hu-accent: hsl(0, 0%, 15%);
+  --hu-accent-foreground: hsl(0, 0%, 100%);
+  --hu-destructive: hsl(0, 84%, 50%);
+  --hu-destructive-foreground: hsl(0, 0%, 98%);
+  --hu-border: 0, 0%, 100%, 10%;
+  --hu-input: 0, 0%, 100%, 5%;
+  --hu-ring: hsl(0, 0%, 56%);
+  --color-fd-background: hsl(var(--hu-background));
+  --color-fd-card: hsl(var(--hu-background));
+}
+
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

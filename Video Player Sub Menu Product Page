@@ -1,0 +1,232 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+thumbnail-button-video-player.tsx
+'use client'
+
+import React, { useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
+
+import { Play, X } from 'lucide-react'
+
+interface ThumbnailButtonProps {
+  videoUrl?: string
+  youtubeId?: string
+  thumbnailUrl?: string
+  title?: string
+  className?: string
+}
+
+const DEFAULT_VIDEO_FALLBACK_URL = 'https://me7aitdbxq.ufs.sh/f/2wsMIGDMQRdYqvMy4kaWD2STgaJv9iAfGNzF5E06KYRULuoj'
+
+const DEFAULT_VIDEO_THUMBNAIL = 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg'
+
+const getYouTubeThumbnail = (id: string) => `https://img.youtube.com/vi/${id}/maxresdefault.jpg`
+
+const getYouTubeEmbedUrl = (id: string) => `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`
+
+const ThumbnailButton: React.FC<ThumbnailButtonProps> = ({
+  videoUrl,
+  youtubeId,
+  thumbnailUrl,
+  title = 'Play Video',
+  className = ''
+}) => {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [buttonRect, setButtonRect] = useState<DOMRect | null>(null)
+
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  const isYouTube = !!youtubeId
+
+  const finalThumbnail = thumbnailUrl || (isYouTube ? getYouTubeThumbnail(youtubeId!) : DEFAULT_VIDEO_THUMBNAIL)
+
+  const finalVideoUrl = isYouTube && youtubeId ? getYouTubeEmbedUrl(youtubeId) : videoUrl || DEFAULT_VIDEO_FALLBACK_URL
+
+  const handleOpenModal = () => {
+    if (buttonRef.current) {
+      setButtonRect(buttonRef.current.getBoundingClientRect())
+    }
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => setIsModalOpen(false)
+
+  const getTransformOrigin = () => {
+    if (!buttonRect) return 'center center'
+
+    const centerX = buttonRect.left + buttonRect.width / 2
+    const centerY = buttonRect.top + buttonRect.height / 2
+
+    return `${centerX}px ${centerY}px`
+  }
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleCloseModal()
+    }
+    if (isModalOpen) {
+      document.addEventListener('keydown', handleEsc)
+    }
+    return () => document.removeEventListener('keydown', handleEsc)
+  }, [isModalOpen])
+
+  return (
+    <>
+      <motion.button
+        ref={buttonRef}
+        initial={{ scale: 1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleOpenModal}
+        className={`
+          relative overflow-hidden rounded-2xl bg-muted dark:bg-card 
+          shadow-sm hover:shadow-md transition-all duration-200
+          group focus:outline-none focus:ring-2 focus:ring-ring/50
+          p-2 w-max border border-border hover:cursor-pointer
+          ${className}
+        `}
+        aria-label={title}>
+        <div className="flex items-center">
+          {/* Thumbnail Image */}
+          <div className="relative w-[70px] h-[42px] rounded-lg overflow-hidden flex-shrink-0">
+            <Image src={finalThumbnail} alt="Video thumbnail" fill className="object-cover" sizes="70px" />
+
+            {/* Play Icon Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="p-1 rounded-full bg-background shadow-sm border border-border">
+                <Play size={10} className="fill-foreground text-foreground ml-0.5" />
+              </div>
+            </div>
+
+            {/* YouTube Badge */}
+            {isYouTube && (
+              <div className="absolute bottom-1 right-1 bg-red-600 text-white text-[8px] font-bold px-1 py-0.5 rounded">
+                YT
+              </div>
+            )}
+          </div>
+
+          {/* Button Text */}
+          <p className="pl-3 pr-2 text-foreground font-medium text-base">{title}</p>
+        </div>
+      </motion.button>
+
+      {/* Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            onClick={handleCloseModal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Video Modal"
+          >
+            <motion.div
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.1 }}
+              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="relative w-full max-w-4xl aspect-video bg-card rounded-2xl overflow-hidden shadow-2xl border border-border"
+              style={{ transformOrigin: getTransformOrigin() }}>
+              {/* Close Button */}
+              <button
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white border border-white/20 backdrop-blur-sm transition-all duration-200 hover:cursor-pointer"
+                aria-label="Close video">
+                <X size={20} />
+              </button>
+
+              {/* Video or YouTube */}
+              {isYouTube ? (
+                <iframe
+                  src={finalVideoUrl}
+                  className="w-full h-full"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  title={title}
+                />
+              ) : (
+                <video src={finalVideoUrl} controls autoPlay className="w-full h-full" />
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  )
+}
+
+export default ThumbnailButton
+
+
+demo.tsx
+import React, { useState } from 'react';
+import ThumbnailButton from "@/components/ui/thumbnail-button-video-player";
+
+const Demo: React.FC = () => {
+  return (
+    <div className="min-h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
+      <div className="flex flex-col gap-6 p-8">
+        <h1 className="text-2xl font-bold text-center text-foreground mb-4">
+          Thumbnail Button opens video player
+        </h1>
+        
+        <div className="flex flex-col items-center gap-4 max-w-md">
+          {/* YouTube Video */}
+          <ThumbnailButton 
+            youtubeId="dQw4w9WgXcQ" // Use the id from the youtube URL
+            title="Never Gonna Give You Up"
+          />
+          
+          {/* Regular Video File */}
+          <ThumbnailButton
+            videoUrl="https://me7aitdbxq.ufs.sh/f/2wsMIGDMQRdYyFbubgfAdJGgcHaXTtYDS9BWOoP8AKMkrxu6"
+            thumbnailUrl="https://me7aitdbxq.ufs.sh/f/2wsMIGDMQRdYrcDsPep5NDIwsMcqZHiUGKxvuhb64FA8T3JP"
+            title="Goku Goes Super Saiyan (MP4)"
+          />
+          
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Demo;
+```
+
+Install NPM dependencies:
+```bash
+next, lucide-react, framer-motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

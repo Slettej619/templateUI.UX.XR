@@ -1,0 +1,564 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+morphing-dialog.tsx
+'use client';
+
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  motion,
+  AnimatePresence,
+  MotionConfig,
+  Transition,
+  Variant,
+} from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { cn } from '@/lib/utils';
+import useClickOutside from '@/hooks/use-click-outside';
+import { XIcon } from 'lucide-react';
+
+interface MorphingDialogContextType {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  uniqueId: string;
+  triggerRef: React.RefObject<HTMLDivElement>;
+}
+
+const MorphingDialogContext =
+  React.createContext<MorphingDialogContextType | null>(null);
+
+function useMorphingDialog() {
+  const context = useContext(MorphingDialogContext);
+  if (!context) {
+    throw new Error(
+      'useMorphingDialog must be used within a MorphingDialogProvider'
+    );
+  }
+  return context;
+}
+
+type MorphingDialogProviderProps = {
+  children: React.ReactNode;
+  transition?: Transition;
+};
+
+function MorphingDialogProvider({
+  children,
+  transition,
+}: MorphingDialogProviderProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const uniqueId = useId();
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  const contextValue = useMemo(
+    () => ({ isOpen, setIsOpen, uniqueId, triggerRef }),
+    [isOpen, uniqueId]
+  );
+
+  return (
+    <MorphingDialogContext.Provider value={contextValue}>
+      <MotionConfig transition={transition}>{children}</MotionConfig>
+    </MorphingDialogContext.Provider>
+  );
+}
+
+type MorphingDialogProps = {
+  children: React.ReactNode;
+  transition?: Transition;
+};
+
+function MorphingDialog({ children, transition }: MorphingDialogProps) {
+  return (
+    <MorphingDialogProvider>
+      <MotionConfig transition={transition}>{children}</MotionConfig>
+    </MorphingDialogProvider>
+  );
+}
+
+type MorphingDialogTriggerProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  triggerRef?: React.RefObject<HTMLDivElement>;
+};
+
+function MorphingDialogTrigger({
+  children,
+  className,
+  style,
+  triggerRef,
+}: MorphingDialogTriggerProps) {
+  const { setIsOpen, isOpen, uniqueId } = useMorphingDialog();
+
+  const handleClick = useCallback(() => {
+    setIsOpen(!isOpen);
+  }, [isOpen, setIsOpen]);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        setIsOpen(!isOpen);
+      }
+    },
+    [isOpen, setIsOpen]
+  );
+
+  return (
+    <motion.div
+      ref={triggerRef}
+      layoutId={`dialog-${uniqueId}`}
+      className={cn('relative cursor-pointer', className)}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      style={style}
+      role='button'
+      aria-haspopup='dialog'
+      aria-expanded={isOpen}
+      aria-controls={`motion-ui-morphing-dialog-content-${uniqueId}`}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+type MorphingDialogContent = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+function MorphingDialogContent({
+  children,
+  className,
+  style,
+}: MorphingDialogContent) {
+  const { setIsOpen, isOpen, uniqueId, triggerRef } = useMorphingDialog();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [firstFocusableElement, setFirstFocusableElement] =
+    useState<HTMLElement | null>(null);
+  const [lastFocusableElement, setLastFocusableElement] =
+    useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+      if (event.key === 'Tab') {
+        if (!firstFocusableElement || !lastFocusableElement) return;
+
+        if (event.shiftKey) {
+          if (document.activeElement === firstFocusableElement) {
+            event.preventDefault();
+            lastFocusableElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastFocusableElement) {
+            event.preventDefault();
+            firstFocusableElement.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [setIsOpen, firstFocusableElement, lastFocusableElement]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('overflow-hidden');
+      const focusableElements = containerRef.current?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements && focusableElements.length > 0) {
+        setFirstFocusableElement(focusableElements[0] as HTMLElement);
+        setLastFocusableElement(
+          focusableElements[focusableElements.length - 1] as HTMLElement
+        );
+        (focusableElements[0] as HTMLElement).focus();
+      }
+    } else {
+      document.body.classList.remove('overflow-hidden');
+      triggerRef.current?.focus();
+    }
+  }, [isOpen, triggerRef]);
+
+  useClickOutside(containerRef, () => {
+    if (isOpen) {
+      setIsOpen(false);
+    }
+  });
+
+  return (
+    <motion.div
+      ref={containerRef}
+      layoutId={`dialog-${uniqueId}`}
+      className={cn('overflow-hidden', className)}
+      style={style}
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby={`motion-ui-morphing-dialog-title-${uniqueId}`}
+      aria-describedby={`motion-ui-morphing-dialog-description-${uniqueId}`}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+type MorphingDialogContainerProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
+  const { isOpen, uniqueId } = useMorphingDialog();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <AnimatePresence initial={false} mode='sync'>
+      {isOpen && (
+        <>
+          <motion.div
+            key={`backdrop-${uniqueId}`}
+            className='fixed inset-0 h-full w-full bg-white/40 backdrop-blur-sm dark:bg-black/40'
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <div className='fixed inset-0 z-50 flex items-center justify-center'>
+            {children}
+          </div>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
+
+type MorphingDialogTitleProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+function MorphingDialogTitle({
+  children,
+  className,
+  style,
+}: MorphingDialogTitleProps) {
+  const { uniqueId } = useMorphingDialog();
+
+  return (
+    <motion.div
+      layoutId={`dialog-title-container-${uniqueId}`}
+      className={className}
+      style={style}
+      layout
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+type MorphingDialogSubtitleProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+function MorphingDialogSubtitle({
+  children,
+  className,
+  style,
+}: MorphingDialogSubtitleProps) {
+  const { uniqueId } = useMorphingDialog();
+
+  return (
+    <motion.div
+      layoutId={`dialog-subtitle-container-${uniqueId}`}
+      className={className}
+      style={style}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+type MorphingDialogDescriptionProps = {
+  children: React.ReactNode;
+  className?: string;
+  disableLayoutAnimation?: boolean;
+  variants?: {
+    initial: Variant;
+    animate: Variant;
+    exit: Variant;
+  };
+};
+
+function MorphingDialogDescription({
+  children,
+  className,
+  variants,
+  disableLayoutAnimation,
+}: MorphingDialogDescriptionProps) {
+  const { uniqueId } = useMorphingDialog();
+
+  return (
+    <motion.div
+      key={`dialog-description-${uniqueId}`}
+      layoutId={
+        disableLayoutAnimation
+          ? undefined
+          : `dialog-description-content-${uniqueId}`
+      }
+      variants={variants}
+      className={className}
+      initial='initial'
+      animate='animate'
+      exit='exit'
+      id={`dialog-description-${uniqueId}`}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+type MorphingDialogImageProps = {
+  src: string;
+  alt: string;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+function MorphingDialogImage({
+  src,
+  alt,
+  className,
+  style,
+}: MorphingDialogImageProps) {
+  const { uniqueId } = useMorphingDialog();
+
+  return (
+    <motion.img
+      src={src}
+      alt={alt}
+      className={cn(className)}
+      layoutId={`dialog-img-${uniqueId}`}
+      style={style}
+    />
+  );
+}
+
+type MorphingDialogCloseProps = {
+  children?: React.ReactNode;
+  className?: string;
+  variants?: {
+    initial: Variant;
+    animate: Variant;
+    exit: Variant;
+  };
+};
+
+function MorphingDialogClose({
+  children,
+  className,
+  variants,
+}: MorphingDialogCloseProps) {
+  const { setIsOpen, uniqueId } = useMorphingDialog();
+
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+  }, [setIsOpen]);
+
+  return (
+    <motion.button
+      onClick={handleClose}
+      type='button'
+      aria-label='Close dialog'
+      key={`dialog-close-${uniqueId}`}
+      className={cn('absolute right-6 top-6', className)}
+      initial='initial'
+      animate='animate'
+      exit='exit'
+      variants={variants}
+    >
+      {children || <XIcon size={24} />}
+    </motion.button>
+  );
+}
+
+export {
+  MorphingDialog,
+  MorphingDialogTrigger,
+  MorphingDialogContainer,
+  MorphingDialogContent,
+  MorphingDialogClose,
+  MorphingDialogTitle,
+  MorphingDialogSubtitle,
+  MorphingDialogDescription,
+  MorphingDialogImage,
+};
+
+
+demo.tsx
+import {
+  MorphingDialog,
+  MorphingDialogTrigger,
+  MorphingDialogContent,
+  MorphingDialogTitle,
+  MorphingDialogImage,
+  MorphingDialogSubtitle,
+  MorphingDialogClose,
+  MorphingDialogDescription,
+  MorphingDialogContainer,
+} from "@/components/ui/morphing-dialog";
+import { PlusIcon } from "lucide-react";
+
+function MorphingDialogBasicOne() {
+  return (
+    <MorphingDialog
+      transition={{
+        type: "spring",
+        bounce: 0.05,
+        duration: 0.25,
+      }}
+    >
+      <MorphingDialogTrigger
+        style={{
+          borderRadius: "12px",
+        }}
+        className="flex max-w-[270px] flex-col overflow-hidden border border-zinc-950/10 bg-white dark:border-zinc-50/10 dark:bg-zinc-900"
+      >
+        <MorphingDialogImage
+          src="https://motion-primitives.com/eb-27-lamp-edouard-wilfrid-buquet.jpg"
+          alt="A desk lamp designed by Edouard Wilfrid Buquet in 1925. It features a double-arm design and is made from nickel-plated brass, aluminium and varnished wood."
+          className="h-48 w-full object-cover"
+        />
+        <div className="flex flex-grow flex-row items-end justify-between p-2">
+          <div>
+            <MorphingDialogTitle className="text-zinc-950 dark:text-zinc-50">
+              EB27
+            </MorphingDialogTitle>
+            <MorphingDialogSubtitle className="text-zinc-700 dark:text-zinc-400">
+              Edouard Wilfrid Buquet
+            </MorphingDialogSubtitle>
+          </div>
+          <button
+            type="button"
+            className="relative ml-1 flex h-6 w-6 shrink-0 scale-100 select-none appearance-none items-center justify-center rounded-lg border border-zinc-950/10 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 focus-visible:ring-2 active:scale-[0.98] dark:border-zinc-50/10 dark:bg-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus-visible:ring-zinc-500"
+            aria-label="Open dialog"
+          >
+            <PlusIcon size={12} />
+          </button>
+        </div>
+      </MorphingDialogTrigger>
+      <MorphingDialogContainer>
+        <MorphingDialogContent
+          style={{
+            borderRadius: "24px",
+          }}
+          className="pointer-events-auto relative flex h-auto w-full flex-col overflow-hidden border border-zinc-950/10 bg-white dark:border-zinc-50/10 dark:bg-zinc-900 sm:w-[500px]"
+        >
+          <MorphingDialogImage
+            src="https://motion-primitives.com/eb-27-lamp-edouard-wilfrid-buquet.jpg"
+            alt="A desk lamp designed by Edouard Wilfrid Buquet in 1925. It features a double-arm design and is made from nickel-plated brass, aluminium and varnished wood."
+            className="h-full w-full"
+          />
+          <div className="p-6">
+            <MorphingDialogTitle className="text-2xl text-zinc-950 dark:text-zinc-50">
+              EB27
+            </MorphingDialogTitle>
+            <MorphingDialogSubtitle className="text-zinc-700 dark:text-zinc-400">
+              Edouard Wilfrid Buquet
+            </MorphingDialogSubtitle>
+            <MorphingDialogDescription
+              disableLayoutAnimation
+              variants={{
+                initial: { opacity: 0, scale: 0.8, y: 100 },
+                animate: { opacity: 1, scale: 1, y: 0 },
+                exit: { opacity: 0, scale: 0.8, y: 100 },
+              }}
+            >
+              <p className="mt-2 text-zinc-500 dark:text-zinc-500">
+                Little is known about the life of Ã‰douard-Wilfrid Buquet. He
+                was born in France in 1866, but the time and place of his death
+                is unfortunately a mystery.
+              </p>
+              <p className="text-zinc-500">
+                Research conducted in the 1970s revealed that heâ€™d designed
+                the â€œEB 27â€ double-arm desk lamp in 1925, handcrafting it
+                from nickel-plated brass, aluminium and varnished wood.
+              </p>
+              <a
+                className="mt-2 inline-flex text-zinc-500 underline"
+                href="https://www.are.na/block/12759029"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Are.na block
+              </a>
+            </MorphingDialogDescription>
+          </div>
+          <MorphingDialogClose className="text-zinc-50" />
+        </MorphingDialogContent>
+      </MorphingDialogContainer>
+    </MorphingDialog>
+  );
+}
+
+export { MorphingDialogBasicOne };
+
+```
+
+Install NPM dependencies:
+```bash
+lucide-react, framer-motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

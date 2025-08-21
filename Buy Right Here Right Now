@@ -1,0 +1,364 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+random-letter-swap.tsx
+'use client'
+
+import { useState } from "react"
+import { DynamicAnimationOptions, motion, useAnimate } from "framer-motion"
+import { debounce } from "lodash"
+
+interface TextProps {
+  label: string
+  reverse?: boolean
+  transition?: DynamicAnimationOptions
+  staggerDuration?: number
+  className?: string
+  onClick?: () => void
+}
+
+export function RandomLetterSwapForward({
+  label,
+  reverse = true,
+  transition = {
+    type: "spring",
+    duration: 0.8,
+  },
+  staggerDuration = 0.02,
+  className,
+  onClick,
+  ...props
+}: TextProps) {
+  const [scope, animate] = useAnimate()
+  const [blocked, setBlocked] = useState(false)
+
+  const mergeTransition = (transition: DynamicAnimationOptions, i: number) => ({
+    ...transition,
+    delay: i * staggerDuration,
+  })
+
+  const shuffledIndices = Array.from(
+    { length: label.length },
+    (_, i) => i
+  ).sort(() => Math.random() - 0.5)
+
+  const hoverStart = debounce(
+    () => {
+      if (blocked) return
+      setBlocked(true)
+
+      for (let i = 0; i < label.length; i++) {
+        const randomIndex = shuffledIndices[i]
+        animate(
+          ".letter-" + randomIndex,
+          {
+            y: reverse ? "100%" : "-100%",
+          },
+          mergeTransition(transition, i)
+        ).then(() => {
+          animate(
+            ".letter-" + randomIndex,
+            {
+              y: 0,
+            },
+            {
+              duration: 0,
+            }
+          )
+        })
+
+        animate(
+          ".letter-secondary-" + randomIndex,
+          {
+            top: "0%",
+          },
+          mergeTransition(transition, i)
+        )
+          .then(() => {
+            animate(
+              ".letter-secondary-" + randomIndex,
+              {
+                top: reverse ? "-100%" : "100%",
+              },
+              {
+                duration: 0,
+              }
+            )
+          })
+          .then(() => {
+            if (i === label.length - 1) {
+              setBlocked(false)
+            }
+          })
+      }
+    },
+    100,
+    { leading: true, trailing: true }
+  )
+
+  return (
+    <motion.span
+      className={`flex justify-center items-center relative overflow-hidden ${className}`}
+      onHoverStart={hoverStart}
+      onClick={onClick}
+      ref={scope}
+      {...props}
+    >
+      <span className="sr-only">{label}</span>
+
+      {label.split("").map((letter: string, i: number) => {
+        return (
+          <span className="whitespace-pre relative flex" key={i}>
+            <motion.span
+              className={`relative pb-2 letter-${i}`}
+              style={{ top: 0 }}
+            >
+              {letter}
+            </motion.span>
+            <motion.span
+              className={`absolute letter-secondary-${i}`}
+              aria-hidden={true}
+              style={{ top: reverse ? "-100%" : "100%" }}
+            >
+              {letter}
+            </motion.span>
+          </span>
+        )
+      })}
+    </motion.span>
+  )
+}
+
+export function RandomLetterSwapPingPong({
+  label,
+  reverse = true,
+  transition = {
+    type: "spring",
+    duration: 0.8,
+  },
+  staggerDuration = 0.02,
+  className,
+  onClick,
+  ...props
+}: TextProps) {
+  const [scope, animate] = useAnimate()
+  const [blocked, setBlocked] = useState(false)
+
+  const mergeTransition = (transition: DynamicAnimationOptions, i: number) => ({
+    ...transition,
+    delay: i * staggerDuration,
+  })
+
+  const shuffledIndices = Array.from(
+    { length: label.length },
+    (_, i) => i
+  ).sort(() => Math.random() - 0.5)
+
+  const hoverStart = debounce(
+    () => {
+      if (blocked) return
+      setBlocked(true)
+
+      for (let i = 0; i < label.length; i++) {
+        const randomIndex = shuffledIndices[i]
+        animate(
+          ".letter-" + randomIndex,
+          {
+            y: reverse ? "100%" : "-100%",
+          },
+          mergeTransition(transition, i)
+        )
+
+        animate(
+          ".letter-secondary-" + randomIndex,
+          {
+            top: "0%",
+          },
+          mergeTransition(transition, i)
+        )
+      }
+    },
+    100,
+    { leading: true, trailing: true }
+  )
+
+  const hoverEnd = debounce(
+    () => {
+      setBlocked(false)
+
+      for (let i = 0; i < label.length; i++) {
+        const randomIndex = shuffledIndices[i]
+        animate(
+          ".letter-" + randomIndex,
+          {
+            y: 0,
+          },
+          mergeTransition(transition, i)
+        )
+
+        animate(
+          ".letter-secondary-" + randomIndex,
+          {
+            top: reverse ? "-100%" : "100%",
+          },
+          mergeTransition(transition, i)
+        )
+      }
+    },
+    100,
+    { leading: true, trailing: true }
+  )
+
+  return (
+    <motion.span
+      className={`flex justify-center items-center relative overflow-hidden ${className}`}
+      onHoverStart={hoverStart}
+      onHoverEnd={hoverEnd}
+      onClick={onClick}
+      ref={scope}
+      {...props}
+    >
+      <span className="sr-only">{label}</span>
+
+      {label.split("").map((letter: string, i: number) => {
+        return (
+          <span className="whitespace-pre relative flex" key={i}>
+            <motion.span
+              className={`relative pb-2 letter-${i}`}
+              style={{ top: 0 }}
+            >
+              {letter}
+            </motion.span>
+            <motion.span
+              className={`absolute letter-secondary-${i}`}
+              aria-hidden={true}
+              style={{ top: reverse ? "-100%" : "100%" }}
+            >
+              {letter}
+            </motion.span>
+          </span>
+        )
+      })}
+    </motion.span>
+  )
+}
+
+demo.tsx
+'use client'
+
+import { RandomLetterSwapForward, RandomLetterSwapPingPong } from "@/components/ui/random-letter-swap"
+
+function BasicExample() {
+  return (
+    <div className="w-full h-full rounded-lg bg-white text-3xl md:text-5xl flex flex-col items-center justify-center font-overusedGrotesk">
+      <div className="h-full text-red-500 rounded-xl py-12 align-text-center gap-y-1 md:gap-y-2 flex flex-col justify-center items-center">
+        <RandomLetterSwapForward
+          label="Right here!"
+          reverse={true}
+        />
+        <RandomLetterSwapForward
+          label="Right now!"
+          reverse={false}
+          className="font-bold italic px-4"
+        />
+        <RandomLetterSwapPingPong 
+          label="Right here!" 
+        />
+        <RandomLetterSwapPingPong
+          label="Right now!"
+          reverse={false}
+          className="font-bold"
+        />
+      </div>
+    </div>
+  )
+}
+
+function CustomStylesExample() {
+  return (
+    <div className="w-full h-full rounded-lg bg-slate-900 text-2xl md:text-4xl flex flex-col items-center justify-center">
+      <div className="space-y-4 text-white">
+        <RandomLetterSwapForward
+          label="Hover me!"
+          className="font-mono"
+        />
+        <RandomLetterSwapPingPong
+          label="Or me!"
+          className="font-serif italic"
+        />
+      </div>
+    </div>
+  )
+}
+
+function TimingExample() {
+  return (
+    <div className="w-full h-full rounded-lg bg-white text-2xl md:text-4xl flex flex-col items-center justify-center gap-6">
+      <RandomLetterSwapForward
+        label="Fast Animation"
+        transition={{ type: "spring", duration: 0.3 }}
+        staggerDuration={0.01}
+      />
+      <RandomLetterSwapPingPong
+        label="Slow Animation"
+        transition={{ type: "spring", duration: 1.2 }}
+        staggerDuration={0.05}
+      />
+    </div>
+  )
+}
+
+function DirectionExample() {
+  return (
+    <div className="w-full h-full rounded-lg bg-black text-2xl md:text-4xl flex flex-col items-center justify-center gap-6 text-white">
+      <RandomLetterSwapForward
+        label="Up to Down"
+        reverse={true}
+      />
+      <RandomLetterSwapForward
+        label="Down to Up"
+        reverse={false}
+      />
+    </div>
+  )
+}
+
+export {
+  BasicExample,
+  CustomStylesExample,
+  TimingExample,
+  DirectionExample
+}
+```
+
+Install NPM dependencies:
+```bash
+lodash, framer-motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

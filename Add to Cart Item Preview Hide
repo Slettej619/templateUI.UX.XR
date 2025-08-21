@@ -1,0 +1,274 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+use-item-overflow.tsx
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useResizeObserver } from "usehooks-ts";
+
+interface UseOverflowOptions {
+  /** Total number of items to manage */
+  total: number;
+  /** Maximum number of items to show (optional) */
+  max?: number;
+  /** Gap between items in pixels */
+  gap?: number;
+}
+
+export function useOverflow({
+  total,
+  max = Infinity,
+  gap = 8,
+}: UseOverflowOptions) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<(HTMLElement | null)[]>([]);
+  const [visibleCount, setVisibleCount] = useState(total);
+
+  const measure = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const containerWidth = container.getBoundingClientRect().width;
+    const items = itemsRef.current.filter(
+      (item): item is HTMLElement => item !== null
+    );
+
+    if (items.length === 0) {
+      setVisibleCount(0);
+      return;
+    }
+
+    // Get the width of the last item (will be our "more" indicator)
+    const moreItemWidth = items[items.length - 1].getBoundingClientRect().width;
+
+    let totalWidth = 0;
+    let count = 0;
+
+    // Calculate how many items we can fit
+    for (let i = 0; i < Math.min(items.length - 1, max); i++) {
+      const itemWidth = items[i].getBoundingClientRect().width;
+
+      if (totalWidth + itemWidth + gap <= containerWidth) {
+        totalWidth += itemWidth + gap;
+        count++;
+      } else {
+        break;
+      }
+    }
+
+    // If we need to show the "more" indicator, make sure we have space for it
+    if (count < total) {
+      while (count > 0 && totalWidth + moreItemWidth + gap > containerWidth) {
+        const itemWidth = items[count - 1].getBoundingClientRect().width;
+        totalWidth -= itemWidth + gap;
+        count--;
+      }
+    }
+
+    setVisibleCount(count);
+  }, [total, max, gap]);
+
+  // Measure on mount and when dependencies change
+  useLayoutEffect(() => {
+    measure();
+  }, [measure]);
+
+  // Measure on resize
+  useResizeObserver({
+    ref: containerRef,
+    onResize: measure,
+  });
+
+  const registerItem = useCallback(
+    (index: number) => (element: HTMLElement | null) => {
+      itemsRef.current[index] = element;
+    },
+    []
+  );
+
+  return {
+    containerRef,
+    registerItem,
+    visibleCount,
+    hiddenCount: Math.max(0, total - visibleCount),
+    isVisible: (index: number) => index < visibleCount,
+  };
+}
+
+
+demo.tsx
+import { useOverflow } from "@/hooks/use-item-overflow";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
+function OverflowDemo() {
+  const [items, setItems] = useState(() =>
+    Array.from({ length: 5 }, (_, i) => `Item ${i + 1}`)
+  );
+
+  const [maxItems, setMaxItems] = useState(Infinity);
+
+  const { containerRef, registerItem, isVisible, hiddenCount } = useOverflow({
+    total: items.length,
+    max: maxItems,
+    gap: 8,
+  });
+
+  return (
+    <div className="space-y-4 p-4">
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={() =>
+            setItems((prev) => [...prev, `Item ${prev.length + 1}`])
+          }
+        >
+          Add Item
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={() => setItems((prev) => prev.slice(0, -1))}
+          disabled={items.length === 0}
+        >
+          Remove Item
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={() => setMaxItems((prev) => (prev === 3 ? Infinity : 3))}
+        >
+          {maxItems === Infinity ? "Limit to 3" : "Remove Limit"}
+        </Button>
+      </div>
+
+      <div className="w-[500px] border rounded-lg p-4">
+        <div ref={containerRef} className="flex gap-2 flex-wrap">
+          {items.map((item, index) => (
+            <Button
+              key={index}
+              ref={registerItem(index)}
+              size="sm"
+              variant="secondary"
+              className="transition-opacity duration-200"
+              style={{
+                opacity: isVisible(index) ? 1 : 0,
+                pointerEvents: isVisible(index) ? "auto" : "none",
+                position: isVisible(index) ? "relative" : "absolute",
+              }}
+            >
+              {item}
+            </Button>
+          ))}
+
+          {hiddenCount > 0 && (
+            <Button
+              ref={registerItem(items.length)}
+              size="sm"
+              variant="outline"
+            >
+              +{hiddenCount} more
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export { OverflowDemo };
+
+```
+
+Copy-paste these files for dependencies:
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+```
+
+Install NPM dependencies:
+```bash
+usehooks-ts, @radix-ui/react-slot, class-variance-authority
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

@@ -1,0 +1,336 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+dark-gradient-pricing.tsx
+import { motion } from "framer-motion"
+import { Check, X } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+
+interface BenefitProps {
+  text: string
+  checked: boolean
+}
+
+const Benefit = ({ text, checked }: BenefitProps) => {
+  return (
+    <div className="flex items-center gap-3">
+      {checked ? (
+        <span className="grid size-4 place-content-center rounded-full bg-primary text-sm text-primary-foreground">
+          <Check className="size-3" />
+        </span>
+      ) : (
+        <span className="grid size-4 place-content-center rounded-full dark:bg-zinc-800 bg-zinc-200 text-sm dark:text-zinc-400 text-zinc-600">
+          <X className="size-3" />
+        </span>
+      )}
+      <span className="text-sm dark:text-zinc-300 text-zinc-600">{text}</span>
+    </div>
+  )
+}
+
+interface PricingCardProps {
+  tier: string
+  price: string
+  bestFor: string
+  CTA: string
+  benefits: Array<{ text: string; checked: boolean }>
+  className?: string
+}
+
+export const PricingCard = ({
+  tier,
+  price,
+  bestFor,
+  CTA,
+  benefits,
+  className,
+}: PricingCardProps) => {
+  return (
+    <motion.div
+      initial={{ filter: "blur(2px)" }}
+      whileInView={{ filter: "blur(0px)" }}
+      transition={{ duration: 0.5, ease: "easeInOut", delay: 0.25 }}
+    >
+      <Card
+        className={cn(
+          "relative h-full w-full overflow-hidden border",
+          "dark:border-zinc-700 dark:bg-gradient-to-br dark:from-zinc-950/50 dark:to-zinc-900/80",
+          "border-zinc-200 bg-gradient-to-br from-zinc-50/50 to-zinc-100/80",
+          "p-6",
+          className,
+        )}
+      >
+        <div className="flex flex-col items-center border-b pb-6 dark:border-zinc-700 border-zinc-200">
+          <span className="mb-6 inline-block dark:text-zinc-50 text-zinc-900">
+            {tier}
+          </span>
+          <span className="mb-3 inline-block text-4xl font-medium">
+            {price}
+          </span>
+          <span className="dark:bg-gradient-to-br dark:from-zinc-200 dark:to-zinc-500 bg-gradient-to-br from-zinc-700 to-zinc-900 bg-clip-text text-center text-transparent">
+            {bestFor}
+          </span>
+        </div>
+        <div className="space-y-4 py-9">
+          {benefits.map((benefit, index) => (
+            <Benefit key={index} {...benefit} />
+          ))}
+        </div>
+        <Button
+          className="w-full"
+          variant={tier === "Pro" ? "default" : "ghost"}
+        >
+          {CTA}
+        </Button>
+      </Card>
+    </motion.div>
+  )
+}
+
+
+demo.tsx
+import { PricingCard } from "@/components/ui/dark-gradient-pricing"
+
+function PricingDemo() {
+  return (
+    <section className="relative overflow-hidden bg-background text-foreground">
+      <div className="relative z-10 mx-auto max-w-5xl px-4 py-20 md:px-8">
+        <div className="mb-12 space-y-3">
+          <h2 className="text-center text-3xl font-semibold leading-tight sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight">
+            Pricing
+          </h2>
+          <p className="text-center text-base text-muted-foreground md:text-lg">
+            Use it for free for yourself, upgrade when your team needs advanced
+            control.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <PricingCard
+            tier="Free"
+            price="$0/mo"
+            bestFor="Best for 1-5 users"
+            CTA="Get started free"
+            benefits={[
+              { text: "One workspace", checked: true },
+              { text: "Email support", checked: true },
+              { text: "1 day data retention", checked: false },
+              { text: "Custom roles", checked: false },
+              { text: "Priority support", checked: false },
+              { text: "SSO", checked: false },
+            ]}
+          />
+          <PricingCard
+            tier="Pro"
+            price="$79/mo"
+            bestFor="Best for 5-50 users"
+            CTA="14-day free trial"
+            benefits={[
+              { text: "Five workspaces", checked: true },
+              { text: "Email support", checked: true },
+              { text: "7 day data retention", checked: true },
+              { text: "Custom roles", checked: true },
+              { text: "Priority support", checked: false },
+              { text: "SSO", checked: false },
+            ]}
+          />
+          <PricingCard
+            tier="Enterprise"
+            price="Contact us"
+            bestFor="Best for 50+ users"
+            CTA="Contact us"
+            benefits={[
+              { text: "Unlimited workspaces", checked: true },
+              { text: "Email support", checked: true },
+              { text: "30 day data retention", checked: true },
+              { text: "Custom roles", checked: true },
+              { text: "Priority support", checked: true },
+              { text: "SSO", checked: true },
+            ]}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export { PricingDemo }
+```
+
+Copy-paste these files for dependencies:
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+```
+```tsx
+shadcn/card
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      className,
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn(
+      "text-2xl font-semibold leading-none tracking-tight",
+      className,
+    )}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+```
+
+Install NPM dependencies:
+```bash
+framer-motion, @radix-ui/react-slot, class-variance-authority
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

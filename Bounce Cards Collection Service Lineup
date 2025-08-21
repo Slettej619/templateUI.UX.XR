@@ -1,0 +1,176 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+bounce-cards.tsx
+import { useEffect } from "react"
+import { gsap } from "gsap"
+import { cn } from "@/lib/utils"
+
+interface BounceCardsProps {
+  /**
+   * Additional CSS classes for the container
+   */
+  className?: string
+  /**
+   * Array of image URLs to display
+   */
+  images?: string[]
+  /**
+   * Width of the container in pixels
+   */
+  containerWidth?: number
+  /**
+   * Height of the container in pixels
+   */
+  containerHeight?: number
+  /**
+   * Delay before animation starts (in seconds)
+   */
+  animationDelay?: number
+  /**
+   * Delay between each card animation (in seconds)
+   */
+  animationStagger?: number
+  /**
+   * GSAP easing function
+   */
+  easeType?: string
+  /**
+   * Array of transform styles for each card
+   */
+  transformStyles?: string[]
+}
+
+/**
+ * A component that displays a group of cards with a bouncing animation effect.
+ * Uses GSAP for smooth animations and supports custom positioning and timing.
+ */
+export function BounceCards({
+  className = "",
+  images = [],
+  containerWidth = 400,
+  containerHeight = 400,
+  animationDelay = 0.5,
+  animationStagger = 0.06,
+  easeType = "elastic.out(1, 0.8)",
+  transformStyles = [
+    "rotate(10deg) translate(-170px)",
+    "rotate(5deg) translate(-85px)",
+    "rotate(-3deg)",
+    "rotate(-10deg) translate(85px)",
+    "rotate(2deg) translate(170px)"
+  ]
+}: BounceCardsProps) {
+  useEffect(() => {
+    gsap.fromTo(
+      ".card",
+      { scale: 0 },
+      {
+        scale: 1,
+        stagger: animationStagger,
+        ease: easeType,
+        delay: animationDelay
+      }
+    )
+  }, [animationStagger, easeType, animationDelay])
+
+  return (
+    <div
+      className={cn("relative", className)}
+      style={{
+        width: containerWidth,
+        height: containerHeight
+      }}
+    >
+      {images.map((src, idx) => (
+        <div
+          key={idx}
+          className={cn(
+            "card absolute w-[200px] aspect-square rounded-[30px] overflow-hidden",
+            "border-8 border-white dark:border-white/90",
+            "shadow-lg dark:shadow-black/20"
+          )}
+          style={{
+            transform: transformStyles[idx] !== undefined ? transformStyles[idx] : "none"
+          }}
+        >
+          <img
+            className="w-full h-full object-cover"
+            src={src}
+            alt={`card-${idx}`}
+            loading="lazy"
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+demo.tsx
+import { BounceCards } from "@/components/ui/bounce-cards"
+
+const images = [
+  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=500&auto=format",
+  "https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?q=80&w=500&auto=format",
+  "https://images.unsplash.com/photo-1449844908441-8829872d2607?q=80&w=500&auto=format",
+  "https://images.unsplash.com/photo-1452626212852-811d58933cae?q=80&w=500&auto=format",
+  "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?q=80&w=500&auto=format"
+]
+
+const transformStyles = [
+  "rotate(5deg) translate(-150px)",
+  "rotate(0deg) translate(-70px)",
+  "rotate(-5deg)",
+  "rotate(5deg) translate(70px)",
+  "rotate(-5deg) translate(150px)"
+]
+
+export function BounceCardsDemo() {
+  return (
+    <div className="space-y-8">
+      <BounceCards
+        images={images}
+        containerWidth={500}
+        containerHeight={500}
+        animationDelay={1}
+        animationStagger={0.08}
+        easeType="elastic.out(1, 0.5)"
+        transformStyles={transformStyles}
+        className="mx-auto"
+      />
+    </div>
+  )
+}
+```
+
+Install NPM dependencies:
+```bash
+gsap
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

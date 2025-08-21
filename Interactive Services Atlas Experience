@@ -1,0 +1,299 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+image-trail.tsx
+import { Children, useCallback, useEffect, useMemo, useRef } from "react"
+import {
+  AnimationSequence,
+  motion,
+  Target,
+  Transition,
+  useAnimate,
+  useAnimationFrame,
+} from "framer-motion"
+import { v4 as uuidv4 } from "uuid"
+
+import { useMouseVector } from "@/components/hooks/use-mouse-vector"
+
+type TrailSegment = [Target, Transition]
+
+type TrailAnimationSequence = TrailSegment[]
+
+interface ImageTrailProps {
+  children: React.ReactNode
+  containerRef?: React.RefObject<HTMLElement>
+  newOnTop?: boolean
+  rotationRange?: number
+  animationSequence?: TrailAnimationSequence // Updated type
+  interval?: number
+  velocityDependentSpawn?: boolean
+}
+
+interface TrailItem {
+  id: string
+  x: number
+  y: number
+  rotation: number
+  animationSequence: TrailAnimationSequence // Updated type
+  scale: number
+  child: React.ReactNode
+}
+
+const ImageTrail = ({
+  children,
+  newOnTop = true,
+  rotationRange = 15,
+  containerRef,
+  animationSequence = [
+    [{ scale: 1.2 }, { duration: 0.1, ease: "circOut" }],
+    [{ scale: 0 }, { duration: 0.5, ease: "circIn" }],
+  ],
+  interval = 100,
+}: ImageTrailProps) => {
+  const trailRef = useRef<TrailItem[]>([])
+
+  const lastAddedTimeRef = useRef<number>(0)
+  const { position: mousePosition, vector: mouseVector } =
+    useMouseVector(containerRef)
+  const lastMousePosRef = useRef(mousePosition)
+  const currentIndexRef = useRef(0)
+  // Convert children to array for random selection
+  const childrenArray = useMemo(() => Children.toArray(children), [children])
+
+  // Batch updates using useCallback
+  const addToTrail = useCallback(
+    (mousePos: { x: number; y: number }) => {
+      const newItem: TrailItem = {
+        id: uuidv4(),
+        x: mousePos.x,
+        y: mousePos.y,
+        rotation: (Math.random() - 0.5) * rotationRange * 2,
+        animationSequence,
+        scale: 1,
+        child: childrenArray[currentIndexRef.current],
+      }
+
+      // Increment index and wrap around if needed
+      currentIndexRef.current =
+        (currentIndexRef.current + 1) % childrenArray.length
+
+      if (newOnTop) {
+        trailRef.current.push(newItem)
+      } else {
+        trailRef.current.unshift(newItem)
+      }
+    },
+    [childrenArray, rotationRange, animationSequence, newOnTop]
+  )
+
+  const removeFromTrail = useCallback((itemId: string) => {
+    const index = trailRef.current.findIndex((item) => item.id === itemId)
+    if (index !== -1) {
+      trailRef.current.splice(index, 1)
+    }
+  }, [])
+
+  useAnimationFrame((time, delta) => {
+    // Skip if mouse hasn't moved
+    if (
+      lastMousePosRef.current.x === mousePosition.x &&
+      lastMousePosRef.current.y === mousePosition.y
+    ) {
+      return
+    }
+    lastMousePosRef.current = mousePosition
+
+    const currentTime = time
+
+    if (currentTime - lastAddedTimeRef.current < interval) {
+      return
+    }
+
+    lastAddedTimeRef.current = currentTime
+
+    addToTrail(mousePosition)
+  })
+
+  return (
+    <div className="relative w-full h-full pointer-events-none">
+      {trailRef.current.map((item) => (
+        <TrailItem key={item.id} item={item} onComplete={removeFromTrail} />
+      ))}
+    </div>
+  )
+}
+
+interface TrailItemProps {
+  item: TrailItem
+  onComplete: (id: string) => void
+}
+
+const TrailItem = ({ item, onComplete }: TrailItemProps) => {
+  const [scope, animate] = useAnimate()
+
+  useEffect(() => {
+    const sequence = item.animationSequence.map((segment: TrailSegment) => [
+      scope.current,
+      ...segment,
+    ])
+
+    animate(sequence as AnimationSequence).then(() => {
+      onComplete(item.id)
+    })
+  }, [])
+
+  return (
+    <motion.div
+      ref={scope}
+      key={item.id}
+      className="absolute"
+      style={{
+        left: item.x,
+        top: item.y,
+        rotate: item.rotation,
+      }}
+    >
+      {item.child}
+    </motion.div>
+  )
+}
+
+export { ImageTrail }
+
+
+demo.tsx
+'use client'
+
+import { useRef } from "react"
+import { ImageTrail } from "@/components/ui/image-trail"
+
+const ImageTrailDemo = () => {
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Unsplash images that definitely exist
+ const images = [
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05",
+    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+    "https://images.unsplash.com/photo-1426604966848-d7adac402bff",
+    "https://images.unsplash.com/photo-1472214103451-9374bd1c798e",
+    "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d",
+  ].map(url => `${url}?auto=format&fit=crop&w=300&q=80`)
+
+  return (
+    <div className="flex w-full h-screen justify-center items-center bg-white relative overflow-hidden">
+      <div className="absolute top-0 left-0 z-0" ref={ref}>
+        <ImageTrail containerRef={ref}>
+          {images.map((url, index) => (
+            <div
+              key={index}
+              className="flex relative overflow-hidden w-24 h-24 rounded-lg"
+            >
+              <img
+                src={url}
+                alt={`Trail image ${index + 1}`}
+                className="object-cover absolute inset-0 hover:scale-110 transition-transform"
+              />
+            </div>
+          ))}
+        </ImageTrail>
+      </div>
+      <h1 className="text-7xl md:text-9xl font-bold z-10 select-none bg-clip-text text-transparent bg-gradient-to-r from-neutral-950 to-neutral-500">
+        ALBUMS
+      </h1>
+    </div>
+  )
+}
+
+export { ImageTrailDemo }
+```
+
+Copy-paste these files for dependencies:
+```tsx
+danielpetho/use-mouse-vector
+import { RefObject, useEffect, useState } from "react"
+
+export const useMouseVector = (
+  containerRef?: RefObject<HTMLElement | SVGElement>
+) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [vector, setVector] = useState({ dx: 0, dy: 0 })
+
+  useEffect(() => {
+    let lastPosition = { x: 0, y: 0 }
+
+    const updatePosition = (x: number, y: number) => {
+      let newX, newY
+
+      if (containerRef && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        newX = x - rect.left
+        newY = y - rect.top
+      } else {
+        newX = x
+        newY = y
+      }
+
+      // Calculate the movement vector
+      const dx = newX - lastPosition.x
+      const dy = newY - lastPosition.y
+
+      setVector({ dx, dy })
+      setPosition({ x: newX, y: newY })
+      lastPosition = { x: newX, y: newY }
+    }
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      updatePosition(ev.clientX, ev.clientY)
+    }
+
+    const handleTouchMove = (ev: TouchEvent) => {
+      const touch = ev.touches[0]
+      updatePosition(touch.clientX, touch.clientY)
+    }
+
+    // Listen for both mouse and touch events
+    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("touchmove", handleTouchMove)
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("touchmove", handleTouchMove)
+    }
+  }, [containerRef])
+
+  return { position, vector }
+}
+```
+
+Install NPM dependencies:
+```bash
+uuid, framer-motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

@@ -1,0 +1,158 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+animated-counter.tsx
+"use client" 
+
+import * as React from "react"
+ 
+import { MotionValue, motion, useSpring, useTransform } from "motion/react";
+import { useEffect, useState } from "react";
+import { twMerge } from "tailwind-merge";
+import clsx from "clsx";
+ 
+const cn = (...args: any[]) => {
+  return twMerge(clsx(args));
+};
+ 
+const fontSize = 40;
+const padding = 10;
+const height = fontSize + padding;
+ 
+interface CounterProps
+  extends React.DetailedHTMLProps<
+    React.HTMLAttributes<HTMLParagraphElement>,
+    HTMLParagraphElement
+  > {
+  start?: number;
+  end: number;
+  duration?: number;
+  className?: string;
+  fontSize?: number;
+}
+ 
+export const Counter = ({
+  start = 0,
+  end,
+  duration = end,
+  className,
+  fontSize = 30,
+  ...rest
+}: CounterProps) => {
+  const [value, setValue] = useState(start);
+ 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (value < end) {
+        setValue((prev) => prev + 1);
+      }
+    }, (duration / (end - start)) * 1000);
+ 
+    return () => clearInterval(interval);
+  }, [value]);
+ 
+  return (
+    <div
+      style={{ fontSize }}
+      {...rest}
+      className={cn(
+        "flex overflow-hidden rounded px-2 leading-none text-primary font-bold ",
+        className
+      )}
+    >
+      {value >= 100000 && <Digit place={100000} value={value} />}
+      {value >= 10000 && <Digit place={10000} value={value} />}
+      {value >= 1000 && <Digit place={1000} value={value} />}
+      {value >= 100 && <Digit place={100} value={value} />}
+      {value >= 10 && <Digit place={10} value={value} />}
+      <Digit place={1} value={value} />
+    </div>
+  );
+};
+ 
+function Digit({ place, value }: { place: number; value: number }) {
+  let valueRoundedToPlace = Math.floor(value / place);
+  let animatedValue = useSpring(valueRoundedToPlace);
+ 
+  useEffect(() => {
+    animatedValue.set(valueRoundedToPlace);
+  }, [animatedValue, valueRoundedToPlace]);
+ 
+  return (
+    <div style={{ height }} className="relative w-[1ch] tabular-nums">
+      {[...Array(10)].map((_, i) => (
+        <Number key={i} mv={animatedValue} number={i} />
+      ))}
+    </div>
+  );
+}
+ 
+function Number({ mv, number }: { mv: MotionValue; number: number }) {
+  let y = useTransform(mv, (latest) => {
+    let placeValue = latest % 10;
+    let offset = (10 + number - placeValue) % 10;
+ 
+    let memo = offset * height;
+ 
+    if (offset > 5) {
+      memo -= 10 * height;
+    }
+ 
+    return memo;
+  });
+ 
+  return (
+    <motion.span
+      style={{ y }}
+      className="absolute inset-0 flex items-center justify-center"
+    >
+      {number}
+    </motion.span>
+  );
+}
+
+demo.tsx
+import { Counter } from "@/components/ui/animated-counter"
+
+const Demo = () => {
+    return (
+        <>
+            <Counter end={50} duration={20} />
+        </>
+    )
+}
+
+export { Demo }
+```
+
+Install NPM dependencies:
+```bash
+clsx, motion, tailwind-merge
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

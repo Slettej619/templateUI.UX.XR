@@ -1,0 +1,144 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+tilted-scroll.tsx
+import { cn } from "@/lib/utils"
+
+interface TiltedScrollItem {
+  id: string;
+  text: string;
+}
+
+interface TiltedScrollProps {
+  items?: TiltedScrollItem[];
+  className?: string;
+}
+
+export function TiltedScroll({ 
+  items = defaultItems,
+  className 
+}: TiltedScrollProps) {
+  return (
+    <div className={cn("flex items-center justify-center", className)}>
+      <div className="relative overflow-hidden [mask-composite:intersect] [mask-image:linear-gradient(to_right,transparent,black_5rem),linear-gradient(to_left,transparent,black_5rem),linear-gradient(to_bottom,transparent,black_5rem),linear-gradient(to_top,transparent,black_5rem)]">
+        <div className="grid h-[250px] w-[300px] gap-5 animate-skew-scroll grid-cols-1">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="group flex items-center gap-2 cursor-pointer rounded-md border border-border/40 bg-gradient-to-b from-background/80 to-muted/80 p-4 shadow-md transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl dark:border-border"
+            >
+              <CheckCircleIcon className="h-6 w-6 mr-2 stroke-foreground/40 transition-colors group-hover:stroke-foreground" />
+              <p className="text-foreground/80 transition-colors group-hover:text-foreground">
+                {item.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CheckCircleIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  )
+}
+
+const defaultItems: TiltedScrollItem[] = [
+  { id: "1", text: "Item 1" },
+  { id: "2", text: "Item 2" },
+  { id: "3", text: "Item 3" },
+  { id: "4", text: "Item 4" },
+  { id: "5", text: "Item 5" },
+  { id: "6", text: "Item 6" },
+  { id: "7", text: "Item 7" },
+  { id: "8", text: "Item 8" },
+]
+
+demo.tsx
+import { TiltedScroll } from "@/components/ui/tilted-scroll"
+
+export function TiltedScrollDemo() {
+  const customItems = [
+    { id: "1", text: "Feature One" },
+    { id: "2", text: "Feature Two" },
+    { id: "3", text: "Feature Three" },
+    { id: "4", text: "Feature Four" },
+    { id: "5", text: "Feature Five" },
+  ]
+
+  return (
+    <div className="space-y-8">
+      <TiltedScroll 
+        items={customItems}
+        className="mt-8"
+      />
+    </div>
+  )
+}
+```
+
+Extend existing tailwind.config.js with this code:
+```js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  theme: {
+    extend: {
+      animation: {
+        'skew-scroll': 'skew-scroll 20s linear infinite',
+      },
+      keyframes: {
+        'skew-scroll': {
+          '0%': {
+            transform: 'rotateX(20deg) rotateZ(-20deg) skewX(20deg)',
+          },
+          '100%': {
+            transform: 'rotateX(20deg) rotateZ(-20deg) skewX(20deg) translateY(-100%)',
+          },
+        },
+      },
+    },
+  },
+}
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

@@ -1,0 +1,169 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+reveal-links.tsx
+"use client";
+
+import React from "react";
+import { motion } from "framer-motion";
+
+export const RevealLinks = () => {
+  return (
+    <section className="grid place-content-center bg-white dark:bg-black text-black dark:text-white px-8 py-24 w-full h-full">
+      <FlipLink href="#">Twitter</FlipLink>
+      <FlipLink href="#">Linkedin</FlipLink>
+      <FlipLink href="#">Facebook</FlipLink>
+      <FlipLink href="#">Instagram</FlipLink>
+    </section>
+  );
+};
+
+const DURATION = 0.25;
+const STAGGER = 0.025;
+
+interface FlipLinkProps {
+  children: string;
+  href: string;
+}
+
+const FlipLink = ({ children, href }: FlipLinkProps) => {
+  return (
+    <motion.a
+      initial="initial"
+      whileHover="hovered"
+      href={href}
+      // text color is inherited from parent section, so no explicit color here
+      className="relative block overflow-hidden whitespace-nowrap text-4xl font-black uppercase sm:text-7xl md:text-8xl lg:text-9xl"
+      style={{
+        lineHeight: 0.75,
+      }}
+    >
+      <div>
+        {children.split("").map((l, i) => (
+          <motion.span
+            variants={{
+              initial: {
+                y: 0,
+              },
+              hovered: {
+                y: "-100%",
+              },
+            }}
+            transition={{
+              duration: DURATION,
+              ease: "easeInOut",
+              delay: STAGGER * i,
+            }}
+            className="inline-block"
+            key={i}
+          >
+            {l}
+          </motion.span>
+        ))}
+      </div>
+      {/* Removed text-white dark:text-black so it inherits the color from the parent <a> */}
+      <div className="absolute inset-0">
+        {children.split("").map((l, i) => (
+          <motion.span
+            variants={{
+              initial: {
+                y: "100%",
+              },
+              hovered: {
+                y: 0,
+              },
+            }}
+            transition={{
+              duration: DURATION,
+              ease: "easeInOut",
+              delay: STAGGER * i,
+            }}
+            className="inline-block"
+            key={i}
+          >
+            {l}
+          </motion.span>
+        ))}
+      </div>
+    </motion.a>
+  );
+};
+
+demo.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import { RevealLinks } from "@/components/ui/reveal-links";
+import { FiSun, FiMoon } from "react-icons/fi";
+
+const DemoRevealLinks = () => {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("theme") === "dark";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode((prevMode) => !prevMode);
+  };
+
+  return (
+    <div className="flex h-screen w-full justify-center items-center bg-white dark:bg-black relative overflow-auto">
+      <RevealLinks />
+
+      <button
+        onClick={toggleTheme}
+        className="absolute top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 text-black dark:text-white transition-colors duration-200"
+        aria-label="Toggle theme"
+      >
+        {isDarkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
+      </button>
+    </div>
+  );
+};
+
+export { DemoRevealLinks };
+```
+
+Install NPM dependencies:
+```bash
+framer-motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

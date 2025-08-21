@@ -1,0 +1,186 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+toast-buttons.tsx
+"use client"
+
+import { useEffect, useState } from "react"
+import { AlertCircle, CheckCircle, Info, X, XCircle } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
+
+type ToastType = "success" | "error" | "info" | "warning"
+
+interface ToastProps {
+  message: string
+  type?: ToastType
+  duration?: number
+  onClose?: () => void
+  isVisible?: boolean
+  className?: string
+}
+
+const toastIcons = {
+  success: <CheckCircle className="h-5 w-5 text-emerald-500" />,
+  error: <XCircle className="h-5 w-5 text-red-500" />,
+  warning: <AlertCircle className="h-5 w-5 text-amber-500" />,
+  info: <Info className="h-5 w-5 text-blue-500" />,
+}
+
+const toastClasses = {
+  success:
+    "border-emerald-100 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950",
+  error: "border-red-100 bg-red-50 dark:border-red-900 dark:bg-red-950",
+  warning:
+    "border-amber-100 bg-amber-50 dark:border-amber-900 dark:bg-amber-950",
+  info: "border-blue-100 bg-blue-50 dark:border-blue-900 dark:bg-blue-950",
+}
+
+function BasicToast({
+  message,
+  type = "info",
+  duration = 3000,
+  onClose,
+  isVisible = true,
+  className = "",
+}: ToastProps) {
+  const [visible, setVisible] = useState(isVisible)
+
+  useEffect(() => {
+    setVisible(isVisible)
+  }, [isVisible])
+
+  useEffect(() => {
+    if (visible && duration > 0) {
+      const timer = setTimeout(() => {
+        setVisible(false)
+        onClose?.()
+      }, duration)
+      return () => clearTimeout(timer)
+    }
+  }, [visible, duration, onClose])
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          className={`fixed top-4 right-4 z-50 flex w-80 items-center gap-3 rounded-lg border p-4 shadow-lg ${toastClasses[type]} ${className}`}
+          initial={{ opacity: 0, x: 50, scale: 0.8 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{
+            opacity: 0,
+            x: 50,
+            scale: 0.8,
+            transition: { duration: 0.15 },
+          }}
+          transition={{ type: "spring", bounce: 0.25 }}
+        >
+          <div className="flex-shrink-0">{toastIcons[type]}</div>
+          <p className="flex-1 text-sm">{message}</p>
+          <button
+            onClick={() => {
+              setVisible(false)
+              onClose?.()
+            }}
+            className="flex-shrink-0 rounded-full p-1 transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+export default function ToastDemo() {
+  const [showToast, setShowToast] = useState(false)
+  const [toastType, setToastType] = useState<ToastType>("success")
+
+  const handleShowToast = (type: ToastType) => {
+    setToastType(type)
+    setShowToast(true)
+  }
+
+  return (
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => handleShowToast("success")}
+          className="rounded-md bg-emerald-500 px-3 py-1.5 text-sm text-white hover:bg-emerald-600"
+        >
+          Success Toast
+        </button>
+        <button
+          onClick={() => handleShowToast("error")}
+          className="rounded-md bg-red-500 px-3 py-1.5 text-sm text-white hover:bg-red-600"
+        >
+          Error Toast
+        </button>
+        <button
+          onClick={() => handleShowToast("warning")}
+          className="rounded-md bg-amber-500 px-3 py-1.5 text-sm text-white hover:bg-amber-600"
+        >
+          Warning Toast
+        </button>
+        <button
+          onClick={() => handleShowToast("info")}
+          className="rounded-md bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600"
+        >
+          Info Toast
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {showToast && (
+          <BasicToast
+            message={`This is a ${toastType} message example!`}
+            type={toastType}
+            duration={3000}
+            onClose={() => setShowToast(false)}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+
+demo.tsx
+import Component from "@/components/ui/toast-buttons";
+
+export default function DemoOne() {
+  return <Component />;
+}
+
+```
+
+Install NPM dependencies:
+```bash
+motion, lucide-react
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

@@ -1,0 +1,138 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+magnet-lines.tsx
+import { useRef, useEffect } from "react";
+
+function MagnetLines({
+  rows = 9,
+  columns = 9,
+  containerSize = "80vmin",
+  lineColor = "#efefef",
+  lineWidth = "1vmin",
+  lineHeight = "6vmin",
+  baseAngle = -10,
+  className = "",
+  style = {}
+}) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const items = container.querySelectorAll("span");
+
+    const onPointerMove = (pointer) => {
+      items.forEach((item) => {
+        const rect = item.getBoundingClientRect();
+        const centerX = rect.x + rect.width / 2;
+        const centerY = rect.y + rect.height / 2;
+
+        const b = pointer.x - centerX;
+        const a = pointer.y - centerY;
+        const c = Math.sqrt(a * a + b * b) || 1;
+        const r =
+          ((Math.acos(b / c) * 180) / Math.PI) * (pointer.y > centerY ? 1 : -1);
+
+        item.style.setProperty("--rotate", `${r}deg`);
+      });
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+
+    if (items.length) {
+      const middleIndex = Math.floor(items.length / 2);
+      const rect = items[middleIndex].getBoundingClientRect();
+      onPointerMove({ x: rect.x, y: rect.y });
+    }
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+    };
+  }, []);
+
+  const total = rows * columns;
+  const spans = Array.from({ length: total }, (_, i) => (
+    <span
+      key={i}
+      className="block origin-center"
+      style={{
+        backgroundColor: lineColor,
+        width: lineWidth,
+        height: lineHeight,
+        "--rotate": `${baseAngle}deg`,
+        transform: "rotate(var(--rotate))",
+        willChange: "transform"
+      }}
+    />
+  ));
+
+  return (
+    <div
+      ref={containerRef}
+      className={`grid place-items-center ${className}`}
+      style={{
+        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
+        width: containerSize,
+        height: containerSize,
+        ...style
+      }}
+    >
+      {spans}
+    </div>
+  );
+}
+
+export { MagnetLines };
+
+
+demo.tsx
+import { MagnetLines } from "@/components/ui/magnet-lines"
+
+function MagnetLinesDemo() {
+  return (
+    <MagnetLines
+      rows={9}
+      columns={9}
+      containerSize="60vmin"
+      lineColor="tomato"
+      lineWidth="0.8vmin"
+      lineHeight="5vmin"
+      baseAngle={0}
+      style={{ margin: "2rem auto" }}
+    />
+  )
+}
+
+export { MagnetLinesDemo };
+
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

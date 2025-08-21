@@ -1,0 +1,190 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+feature-1.tsx
+import { Button } from "@/components/ui/button";
+
+interface Feature1Props {
+  title: string;
+  description?: string;
+  imageSrc: string;
+  imageAlt: string;
+  buttonPrimary: {
+    label: string;
+    href: string;
+  };
+  buttonSecondary: {
+    label: string;
+    href: string;
+  };
+}
+
+export const Feature1 = ({
+  title = "Blocks built with Shadcn & Tailwind",
+  description = "Hundreds of finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project.",
+  imageSrc = "https://shadcnblocks.com/images/block/placeholder-1.svg",
+  imageAlt = "placeholder hero",
+  buttonPrimary = {
+    label: "Get Started",
+    href: "https://shadcnblocks.com",
+  },
+  buttonSecondary = {
+    label: "Learn More",
+    href: "https://shadcnblocks.com",
+  },
+}: Feature1Props) => {
+  return (
+    <section className="py-32">
+      <div className="container">
+        <div className="grid items-center gap-8 lg:grid-cols-2">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <h1 className="my-6 mt-0 text-4xl font-semibold text-balance lg:text-5xl">
+              {title}
+            </h1>
+            <p className="mb-8 max-w-xl text-muted-foreground lg:text-lg">
+              {description}
+            </p>
+            <div className="flex w-full flex-col justify-center gap-2 sm:flex-row lg:justify-start">
+              <Button asChild>
+                <a href={buttonPrimary.href} target="_blank">
+                  {buttonPrimary.label}
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href={buttonSecondary.href} target="_blank">
+                  {buttonSecondary.label}
+                </a>
+              </Button>
+            </div>
+          </div>
+          <img
+            src={imageSrc}
+            alt={imageAlt}
+            className="max-h-96 w-full rounded-md object-cover"
+          />
+        </div>
+      </div>
+    </section>
+  );
+};
+
+
+demo.tsx
+import { Feature1 } from "@/components/ui/feature-1";
+
+const DemoOne = () => {
+  return (
+    <Feature1   
+      title="Blocks built with Shadcn & Tailwind"
+      description="Hundreds of finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project."
+      imageSrc="https://shadcnblocks.com/images/block/placeholder-1.svg"
+      imageAlt="placeholder hero"
+      buttonPrimary={{
+        label: "Get Started",
+        href: "https://shadcnblocks.com"
+      }}
+      buttonSecondary={{
+        label: "Learn More",
+        href: "https://shadcnblocks.com"
+      }}
+    />
+  );
+};
+
+export { DemoOne };
+
+```
+
+Copy-paste these files for dependencies:
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+```
+
+Install NPM dependencies:
+```bash
+@radix-ui/react-slot, class-variance-authority
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

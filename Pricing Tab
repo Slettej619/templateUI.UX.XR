@@ -1,0 +1,166 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+pricing-tab.tsx
+"use client"
+
+import * as React from "react"
+import { motion } from "framer-motion"
+
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+
+interface TabProps {
+  text: string
+  selected: boolean
+  setSelected: (text: string) => void
+  discount?: boolean
+}
+
+export function Tab({
+  text,
+  selected,
+  setSelected,
+  discount = false,
+}: TabProps) {
+  return (
+    <button
+      onClick={() => setSelected(text)}
+      className={cn(
+        "relative w-fit px-4 py-2 text-sm font-semibold capitalize",
+        "text-foreground transition-colors",
+        discount && "flex items-center justify-center gap-2.5"
+      )}
+    >
+      <span className="relative z-10">{text}</span>
+      {selected && (
+        <motion.span
+          layoutId="tab"
+          transition={{ type: "spring", duration: 0.4 }}
+          className="absolute inset-0 z-0 rounded-full bg-background shadow-sm"
+        />
+      )}
+      {discount && (
+        <Badge
+          variant="secondary"
+          className={cn(
+            "relative z-10 whitespace-nowrap shadow-none",
+            selected && "bg-muted"
+          )}
+        >
+          Save 35%
+        </Badge>
+      )}
+    </button>
+  )
+}
+
+demo.tsx
+"use client"
+
+import * as React from "react"
+import { Tab } from "@/components/ui/pricing-tab"
+
+const FREQUENCIES = ["monthly", "yearly"]
+
+export function TabDemo() {
+  const [selected, setSelected] = React.useState(FREQUENCIES[0])
+
+  return (
+    <div className="flex flex-col items-center gap-8 p-6">
+      <div className="space-y-2 text-center">
+        <h3 className="text-2xl font-bold">Simple Pricing</h3>
+        <p className="text-muted-foreground">
+          Choose the best plan for your needs
+        </p>
+      </div>
+      
+      <div className="flex w-fit rounded-full bg-muted p-1">
+        {FREQUENCIES.map((frequency) => (
+          <Tab
+            key={frequency}
+            text={frequency}
+            selected={selected === frequency}
+            setSelected={setSelected}
+            discount={frequency === "yearly"}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+Copy-paste these files for dependencies:
+```tsx
+shadcn/badge
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const badgeVariants = cva(
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default:
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive:
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+)
+
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function Badge({ className, variant, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  )
+}
+
+export { Badge, badgeVariants }
+
+```
+
+Install NPM dependencies:
+```bash
+framer-motion, class-variance-authority
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

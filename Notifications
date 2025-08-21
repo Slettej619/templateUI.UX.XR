@@ -1,0 +1,166 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+alert-badge.tsx
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
+import { IconType } from "@remixicon/react"
+
+const alertBadgeVariants = cva(
+  "inline-flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-tremor-label font-medium text-white",
+  {
+    variants: {
+      variant: {
+        error: "bg-red-500",
+        success: "bg-emerald-500",
+        info: "bg-blue-500",
+      },
+    },
+    defaultVariants: {
+      variant: "info",
+    },
+  },
+)
+
+interface AlertBadgeProps
+  extends React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof alertBadgeVariants> {
+  icon?: IconType
+  label: string
+  action?: {
+    label: string
+    href: string
+    icon?: IconType
+  }
+}
+
+export function AlertBadge({
+  className,
+  variant,
+  icon: Icon,
+  label,
+  action,
+  ...props
+}: AlertBadgeProps) {
+  return (
+    <span className={cn(alertBadgeVariants({ variant }), className)} {...props}>
+      <span className="inline-flex items-center gap-1.5">
+        {Icon && <Icon className="size-4" aria-hidden={true} />}
+        {label}
+      </span>
+      {action && (
+        <>
+          <span
+            className={cn(
+              "h-5 w-px",
+              variant === "error" && "bg-red-400",
+              variant === "success" && "bg-emerald-400",
+              variant === "info" && "bg-blue-400",
+            )}
+          />
+          <a href={action.href} className="inline-flex items-center gap-1.5">
+            {action.label}
+            {action.icon && (
+              <action.icon className="size-4" aria-hidden={true} />
+            )}
+          </a>
+        </>
+      )}
+    </span>
+  )
+}
+
+
+demo.tsx
+import { AlertBadge } from "@/components/ui/alert-badge"
+import {
+  RiArrowRightUpLine,
+  RiNotificationFill,
+  RiWifiLine,
+} from '@remixicon/react'
+
+export function AlertBadgeDemo() {
+  return (
+    <div className="flex flex-wrap justify-center gap-4">
+      <AlertBadge 
+        variant="error"
+        label="Major incident"
+        action={{
+          label: "Updates",
+          href: "#",
+          icon: RiArrowRightUpLine
+        }}
+      />
+      <AlertBadge 
+        variant="success"
+        icon={RiWifiLine}
+        label="Connected"
+        action={{
+          label: "Edit",
+          href: "#"
+        }}
+      />
+      <AlertBadge 
+        variant="info"
+        icon={RiNotificationFill}
+        label="1 Notification"
+        action={{
+          label: "Read",
+          href: "#",
+          icon: RiArrowRightUpLine
+        }}
+      />
+    </div>
+  )
+}
+```
+
+Install NPM dependencies:
+```bash
+@remixicon/react, class-variance-authority
+```
+
+Extend existing tailwind.config.js with this code:
+```js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  theme: {
+    extend: {
+      borderRadius: {
+        'tremor-full': '9999px',
+      },
+      fontSize: {
+        'tremor-label': ['0.75rem'],
+      },
+    }
+  }
+}
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

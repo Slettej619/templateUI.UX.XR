@@ -1,0 +1,555 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+hero-designali.tsx
+"use client";
+
+import { cn } from "@/lib/utils";
+
+// @ts-ignore
+function n(e) {
+  // @ts-ignore
+  this.init(e || {});
+}
+n.prototype = {
+  // @ts-ignore
+  init: function (e) {
+    // @ts-ignore
+    this.phase = e.phase || 0;
+    // @ts-ignore
+    this.offset = e.offset || 0;
+    // @ts-ignore
+    this.frequency = e.frequency || 0.001;
+    // @ts-ignore
+    this.amplitude = e.amplitude || 1;
+  },
+  update: function () {
+    return (
+      // @ts-ignore
+      (this.phase += this.frequency),
+      // @ts-ignore
+      (e = this.offset + Math.sin(this.phase) * this.amplitude)
+    );
+  },
+  value: function () {
+    return e;
+  },
+};
+
+// @ts-ignore
+function Line(e) {
+  // @ts-ignore
+  this.init(e || {});
+}
+
+Line.prototype = {
+  // @ts-ignore
+  init: function (e) {
+    // @ts-ignore
+    this.spring = e.spring + 0.1 * Math.random() - 0.05;
+    // @ts-ignore
+    this.friction = E.friction + 0.01 * Math.random() - 0.005;
+    // @ts-ignore
+    this.nodes = [];
+    for (var t, n = 0; n < E.size; n++) {
+      t = new Node();
+      // @ts-ignore
+      t.x = pos.x;
+      // @ts-ignore
+      t.y = pos.y;
+      // @ts-ignore
+      this.nodes.push(t);
+    }
+  },
+  update: function () {
+    // @ts-ignore
+    let e = this.spring,
+      // @ts-ignore
+      t = this.nodes[0];
+    // @ts-ignore
+    t.vx += (pos.x - t.x) * e;
+    // @ts-ignore
+    t.vy += (pos.y - t.y) * e;
+    // @ts-ignore
+    for (var n, i = 0, a = this.nodes.length; i < a; i++)
+      // @ts-ignore
+      (t = this.nodes[i]),
+        0 < i &&
+          // @ts-ignore
+          ((n = this.nodes[i - 1]),
+          (t.vx += (n.x - t.x) * e),
+          (t.vy += (n.y - t.y) * e),
+          (t.vx += n.vx * E.dampening),
+          (t.vy += n.vy * E.dampening)),
+        // @ts-ignore
+        (t.vx *= this.friction),
+        // @ts-ignore
+        (t.vy *= this.friction),
+        (t.x += t.vx),
+        (t.y += t.vy),
+        (e *= E.tension);
+  },
+  draw: function () {
+    let e,
+      t,
+      // @ts-ignore
+      n = this.nodes[0].x,
+      // @ts-ignore
+      i = this.nodes[0].y;
+    // @ts-ignore
+    ctx.beginPath();
+    // @ts-ignore
+    ctx.moveTo(n, i);
+    // @ts-ignore
+    for (var a = 1, o = this.nodes.length - 2; a < o; a++) {
+      // @ts-ignore
+      e = this.nodes[a];
+      // @ts-ignore
+      t = this.nodes[a + 1];
+      n = 0.5 * (e.x + t.x);
+      i = 0.5 * (e.y + t.y);
+      // @ts-ignore
+      ctx.quadraticCurveTo(e.x, e.y, n, i);
+    }
+    // @ts-ignore
+    e = this.nodes[a];
+    // @ts-ignore
+    t = this.nodes[a + 1];
+    // @ts-ignore
+    ctx.quadraticCurveTo(e.x, e.y, t.x, t.y);
+    // @ts-ignore
+    ctx.stroke();
+    // @ts-ignore
+    ctx.closePath();
+  },
+};
+
+// @ts-ignore
+function onMousemove(e) {
+  function o() {
+    lines = [];
+    for (let e = 0; e < E.trails; e++)
+      lines.push(new Line({ spring: 0.45 + (e / E.trails) * 0.025 }));
+  }
+  // @ts-ignore
+  function c(e) {
+    e.touches
+      ? // @ts-ignore
+        ((pos.x = e.touches[0].pageX), (pos.y = e.touches[0].pageY))
+      : // @ts-ignore
+        ((pos.x = e.clientX), (pos.y = e.clientY)),
+      e.preventDefault();
+  }
+  // @ts-ignore
+  function l(e) {
+    // @ts-ignore
+    1 == e.touches.length &&
+      ((pos.x = e.touches[0].pageX), (pos.y = e.touches[0].pageY));
+  }
+  document.removeEventListener("mousemove", onMousemove),
+    document.removeEventListener("touchstart", onMousemove),
+    document.addEventListener("mousemove", c),
+    document.addEventListener("touchmove", c),
+    document.addEventListener("touchstart", l),
+    c(e),
+    o(),
+    render();
+}
+
+function render() {
+  // @ts-ignore
+  if (ctx.running) {
+    // @ts-ignore
+    ctx.globalCompositeOperation = "source-over";
+    // @ts-ignore
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    // @ts-ignore
+    ctx.globalCompositeOperation = "lighter";
+    // @ts-ignore
+    ctx.strokeStyle = "hsla(" + Math.round(f.update()) + ",100%,50%,0.025)";
+    // @ts-ignore
+    ctx.lineWidth = 10;
+    for (var e, t = 0; t < E.trails; t++) {
+      // @ts-ignore
+      (e = lines[t]).update();
+      e.draw();
+    }
+    // @ts-ignore
+    ctx.frame++;
+    window.requestAnimationFrame(render);
+  }
+}
+
+function resizeCanvas() {
+  // @ts-ignore
+  ctx.canvas.width = window.innerWidth - 20;
+  // @ts-ignore
+  ctx.canvas.height = window.innerHeight;
+}
+
+// @ts-ignore
+var ctx,
+  // @ts-ignore
+  f,
+  e = 0,
+  pos = {},
+  // @ts-ignore
+  lines = [],
+  E = {
+    debug: true,
+    friction: 0.5,
+    trails: 80,
+    size: 50,
+    dampening: 0.025,
+    tension: 0.99,
+  };
+function Node() {
+  this.x = 0;
+  this.y = 0;
+  this.vy = 0;
+  this.vx = 0;
+}
+
+const renderCanvas = function () {
+  // @ts-ignore
+  ctx = document.getElementById("canvas").getContext("2d");
+  ctx.running = true;
+  ctx.frame = 1;
+  f = new n({
+    phase: Math.random() * 2 * Math.PI,
+    amplitude: 85,
+    frequency: 0.0015,
+    offset: 285,
+  });
+  document.addEventListener("mousemove", onMousemove);
+  document.addEventListener("touchstart", onMousemove);
+  document.body.addEventListener("orientationchange", resizeCanvas);
+  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("focus", () => {
+    // @ts-ignore
+    if (!ctx.running) {
+      // @ts-ignore
+      ctx.running = true;
+      render();
+    }
+  });
+  window.addEventListener("blur", () => {
+    // @ts-ignore
+    ctx.running = true;
+  });
+  resizeCanvas();
+};
+
+import { ReactTyped } from "react-typed";
+
+interface TypeWriterProps {
+  strings: string[];
+}
+
+
+const TypeWriter = ({ strings }: TypeWriterProps) => {
+  return (
+    <ReactTyped
+      loop
+      typeSpeed={80}
+      backSpeed={20}
+      strings={strings}
+      smartBackspace
+      backDelay={1000}
+      loopCount={0}
+      showCursor
+      cursorChar="|"
+    />
+  );
+};
+
+type TColorProp = string | string[];
+
+interface ShineBorderProps {
+  borderRadius?: number;
+  borderWidth?: number;
+  duration?: number;
+  color?: TColorProp;
+  className?: string;
+  children: React.ReactNode;
+}
+
+/**
+ * @name Shine Border
+ * @description It is an animated background border effect component with easy to use and configurable props.
+ * @param borderRadius defines the radius of the border.
+ * @param borderWidth defines the width of the border.
+ * @param duration defines the animation duration to be applied on the shining border
+ * @param color a string or string array to define border color.
+ * @param className defines the class name to be applied to the component
+ * @param children contains react node elements.
+ */
+function ShineBorder({
+  borderRadius = 8,
+  borderWidth = 1,
+  duration = 14,
+  color = "#000000",
+  className,
+  children,
+}: ShineBorderProps) {
+  return (
+    <div
+      style={
+        {
+          "--border-radius": `${borderRadius}px`,
+        } as React.CSSProperties
+      }
+      className={cn(
+        "relative grid h-full w-full place-items-center rounded-3xl bg-white p-3 text-black dark:bg-black dark:text-white",
+        className,
+      )}
+    >
+      <div
+        style={
+          {
+            "--border-width": `${borderWidth}px`,
+            "--border-radius": `${borderRadius}px`,
+            "--shine-pulse-duration": `${duration}s`,
+            "--mask-linear-gradient": `linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)`,
+            "--background-radial-gradient": `radial-gradient(transparent,transparent, ${color instanceof Array ? color.join(",") : color},transparent,transparent)`,
+          } as React.CSSProperties
+        }
+        className={`before:bg-shine-size before:absolute before:inset-0 before:aspect-square before:size-full before:rounded-3xl before:p-[--border-width] before:will-change-[background-position] before:content-[""] before:![-webkit-mask-composite:xor] before:[background-image:--background-radial-gradient] before:[background-size:300%_300%] before:![mask-composite:exclude] before:[mask:--mask-linear-gradient] motion-safe:before:animate-[shine-pulse_var(--shine-pulse-duration)_infinite_linear]`}
+      ></div>
+      {children}
+    </div>
+  );
+}
+
+
+
+export { renderCanvas, TypeWriter, ShineBorder }
+
+demo.tsx
+"use client";
+
+import Image from "next/image";
+
+// this is a client component
+import { useEffect } from "react";
+import Link from "next/link";
+import { renderCanvas, ShineBorder, TypeWriter } from "@/components/ui/hero-designali";
+import { Plus } from "lucide-react"; 
+
+import { Button } from "@/components/ui/button"; 
+
+export const Hero = () => {
+  const talkAbout = [
+    "Graphic Design",
+    "Branding",
+    "Web Design",
+    "Web Develop",
+    "Marketing",
+    "UI UX",
+    "Social Media",
+  ];
+
+  useEffect(() => {
+    renderCanvas();
+  }, []);
+
+  return (
+    <main className="overflow-hidden">
+    <section id="home">
+   <div className="absolute inset-0 max-md:hidden top-[400px] -z-10 h-[400px] w-full bg-transparent bg-[linear-gradient(to_right,#57534e_1px,transparent_1px),linear-gradient(to_bottom,#57534e_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-20 [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] dark:bg-[linear-gradient(to_right,#a8a29e_1px,transparent_1px),linear-gradient(to_bottom,#a8a29e_1px,transparent_1px)]"></div>
+      <div className="flex flex-col items-center justify-center px-6 text-center">
+        <div className="mb-6 mt-10 sm:justify-center md:mb-4 md:mt-40">
+          <div className="relative flex items-center rounded-full border bg-popover px-3 py-1 text-xs text-primary/60">
+            Introducing Dicons.
+            <Link
+              href="/products/dicons"
+              rel="noreferrer"
+              className="ml-1 flex items-center font-semibold"
+            >
+              <div
+                className="absolute inset-0 hover:font-semibold hover:text-ali flex"
+                aria-hidden="true"
+              />
+              Explore <span aria-hidden="true"></span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-5xl">
+                     <div className="border-text-red-500 relative mx-auto h-full bg-background border py-12 p-6 [mask-image:radial-gradient(800rem_96rem_at_center,white,transparent)]">
+
+            <h1 className="flex flex-col text-center text-5xl font-semibold leading-none tracking-tight md:flex-col md:text-8xl lg:flex-row lg:text-8xl">
+              <Plus
+                strokeWidth={4}
+                className="text-text-red-500 absolute -left-5 -top-5 h-10 w-10"
+              />
+              <Plus
+                strokeWidth={4}
+                className="text-text-red-500 absolute -bottom-5 -left-5 h-10 w-10"
+              />
+              <Plus
+                strokeWidth={4}
+                className="text-text-red-500 absolute -right-5 -top-5 h-10 w-10"
+              />
+              <Plus
+                strokeWidth={4}
+                className="text-text-red-500 absolute -bottom-5 -right-5 h-10 w-10"
+              />
+              <span>
+                Your complete platform for the{" "}
+                <span className="text-red-500">Design.</span>
+              </span>
+            </h1>
+            <div className="flex items-center mt-4 justify-center gap-1">
+              <span className="relative flex h-3 w-3 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+              </span>
+              <p className="text-xs text-green-500">Available Now</p>
+            </div>
+          </div>
+
+          <h1 className="mt-8 text-2xl md:text-2xl">
+            Welcome to my creative playground! I&#39;m{" "}
+            <span className="text-red-500 font-bold">Ali </span>
+          </h1>
+
+          <p className="text-primary/60 py-4">
+            I craft enchanting visuals for brands, and conjure design resources
+            to empower others. I am an expert in design like{" "}
+            <span className="text-blue-500 font-semibold">
+              <TypeWriter strings={talkAbout} />
+            </span>.
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <Link href="/graphic">
+              <ShineBorder
+                borderWidth={3}
+                className="border cursor-pointer h-auto w-auto p-2 bg-white/5 backdrop-blur-md dark:bg-black/5"
+                color={["#FF007F", "#39FF14", "#00FFFF"]}
+              >
+                <Button className="w-full rounded-xl" >
+                  Start Posting
+                </Button>
+              </ShineBorder>
+            </Link> 
+            <Link href={"https://cal.com/aliimam/designali"} target="_blank">
+              <Button className="rounded-xl" variant="outline">Book a call</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+      <canvas
+        className="pointer-events-none absolute inset-0 mx-auto"
+        id="canvas"
+      ></canvas>
+    </section>
+    <Image
+        width={1512}
+        height={550}
+        className="absolute left-1/2 top-0 -z-10 -translate-x-1/2"
+        src="https://raw.githubusercontent.com/designali-in/designali/refs/heads/main/apps/www/public/images/gradient-background-top.png"
+        alt=""
+        role="presentation"
+        priority
+      />
+     </main>
+  );
+};
+
+
+```
+
+Copy-paste these files for dependencies:
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+```
+
+Install NPM dependencies:
+```bash
+react-typed, @radix-ui/react-slot, class-variance-authority
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

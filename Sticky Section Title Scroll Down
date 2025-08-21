@@ -1,0 +1,234 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+sticky-section-tabs.tsx
+"use client" 
+
+import React, { Children, isValidElement } from 'react';
+import clsx from 'clsx';
+
+interface StickyTabItemProps {
+  title: string;
+  id: string | number;
+  children: React.ReactNode;
+}
+
+const StickyTabItem: React.FC<StickyTabItemProps> = () => {
+  return null;
+};
+
+interface StickyTabsProps {
+  children: React.ReactNode;
+  mainNavHeight?: string;
+  rootClassName?: string;
+  navSpacerClassName?: string;
+  sectionClassName?: string;
+  stickyHeaderContainerClassName?: string;
+  headerContentWrapperClassName?: string;
+  headerContentLayoutClassName?: string;
+  titleClassName?: string;
+  contentLayoutClassName?: string;
+}
+
+const StickyTabs: React.FC<StickyTabsProps> & { Item: React.FC<StickyTabItemProps> } = ({
+  children,
+  mainNavHeight = '6em',
+  rootClassName = "bg-black text-white",
+  navSpacerClassName = "border-b border-white/15 bg-black",
+  sectionClassName = "bg-[#131313]",
+  stickyHeaderContainerClassName = "shadow-lg",
+  headerContentWrapperClassName = "border-b border-t border-white/15 bg-black",
+  headerContentLayoutClassName = "mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8",
+  titleClassName = "my-0 text-2xl font-medium leading-none md:text-3xl lg:text-4xl",
+  contentLayoutClassName = "mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8",
+}) => {
+  const stickyTopValue = `calc(${mainNavHeight} - 1px)`;
+  const navHeightStyle = { height: mainNavHeight };
+  const stickyHeaderStyle = { top: stickyTopValue };
+
+  return (
+    <div className={clsx("overflow-clip", rootClassName)}>
+
+      <div
+        className={clsx(
+          "sticky left-0 top-0 z-20 w-full",
+          navSpacerClassName
+        )}
+        style={navHeightStyle}
+        aria-hidden="true"
+      />
+
+      {Children.map(children, (child) => {
+        if (!isValidElement(child) || child.type !== StickyTabItem) {
+          if (process.env.NODE_ENV === 'development' && child != null) {
+            console.warn('StickyTabs component expects <StickyTabs.Item> components as direct children.');
+          }
+          return null;
+        }
+
+        const itemElement = child as React.ReactElement<StickyTabItemProps>;
+        const { title, id, children: itemContent } = itemElement.props;
+
+        return (
+          <section
+            key={id}
+            className={clsx(
+              "relative overflow-clip",
+              sectionClassName
+            )}
+          >
+            <div
+              className={clsx(
+                "sticky z-10 -mt-px flex flex-col",
+                stickyHeaderContainerClassName
+              )}
+              style={stickyHeaderStyle}
+            >
+              <div className={clsx(headerContentWrapperClassName)}>
+                <div className={clsx(headerContentLayoutClassName)}>
+                  <div className="flex items-center justify-between">
+                    <h2 className={clsx(titleClassName)}>
+                      {title}
+                    </h2>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={clsx(contentLayoutClassName)}>
+              {itemContent}
+            </div>
+
+          </section>
+        );
+      })}
+    </div>
+  );
+};
+
+StickyTabs.Item = StickyTabItem;
+
+export default StickyTabs;
+
+
+demo.tsx
+import React from 'react';
+import StickyTabs from '@/components/ui/sticky-section-tabs';
+const PlaceholderSvg = () => (
+  <svg
+    width="48"
+    height="48"
+    viewBox="0 0 60 60"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Placeholder Logo"
+    className="text-gray-700"
+  >
+    <path d="M0 20C0 8.95431 8.95431 0 20 0C31.0457 0 40 8.95431 40 20C40 31.0457 31.5 35.5 20 40H40C40 51.0457 31.0457 60 20 60C8.95431 60 0 51.0457 0 40C0 28.9543 9.5 22 20 20H0Z" fill="currentColor"></path>
+    <path d="M40 60C51.7324 55.0977 60 43.5117 60 30C60 16.4883 51.7324 4.90234 40 0V60Z" fill="currentColor"></path>
+  </svg>
+);
+
+const PlaceholderContent: React.FC<{ title: string }> = ({ title }) => (
+  <div className="flex flex-col items-center justify-center text-center py-16">
+    <PlaceholderSvg />
+    <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-200">
+      Content Area: {title}
+    </h3>
+    <p className="text-gray-500 max-w-xl">
+      This is where the detailed content for the '{title}' section would normally appear. For this demo, we're using this placeholder.
+    </p>
+  </div>
+);
+
+export const StickyTabsDemoPage: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-black">
+      <nav
+        className="fixed top-0 left-0 right-0 z-50 bg-black text-white border-b border-white/15 bg-black"
+        style={{ height: "4rem" }}
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+          <div className="flex items-center">
+            <span className="font-semibold text-lg">YourBrand</span>
+          </div>
+          <div className="flex items-center space-x-6 text-sm">
+            <a href="#" className="hover:text-gray-300">Home</a>
+            <a href="#" className="hover:text-gray-300">Work</a>
+            <a href="#" className="hover:text-gray-300">About</a>
+            <a href="#" className="hover:text-gray-300">Contact</a>
+          </div>
+        </div>
+      </nav>
+      <main style={{ paddingTop: "4rem" }}>
+        <div className="bg-black text-white">
+          <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+              Sticky Section Tabs
+            </h1>
+          </div>
+        </div>
+        <StickyTabs
+          mainNavHeight="4rem"
+          rootClassName="bg-black text-white"
+          navSpacerClassName="border-b border-white/15 bg-black"
+          sectionClassName="bg-[#131313]"
+          stickyHeaderContainerClassName="shadow-lg"
+          headerContentWrapperClassName="border-b border-t border-white/15 bg-black"
+          headerContentLayoutClassName="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8"
+          titleClassName="my-0 text-2xl font-medium leading-none md:text-3xl lg:text-4xl"
+          contentLayoutClassName="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8"
+        >
+          <StickyTabs.Item title="Step 1: Concept" id="concept">
+            <PlaceholderContent title="Concept" />
+          </StickyTabs.Item>
+          <StickyTabs.Item title="Step 2: Design" id="design">
+            <PlaceholderContent title="Design" />
+          </StickyTabs.Item>
+          <StickyTabs.Item title="Step 3: Development" id="development">
+            <PlaceholderContent title="Development" />
+          </StickyTabs.Item>
+          <StickyTabs.Item title="Step 4: Launch" id="launch">
+            <PlaceholderContent title="Launch" />
+          </StickyTabs.Item>
+        </StickyTabs>
+        <footer className="bg-black py-8 h-screen text-center text-gray-600 text-xl">
+          Thank you for checking out this demo!
+        </footer>
+      </main>
+    </div>
+  );
+};
+```
+
+Install NPM dependencies:
+```bash
+clsx
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

@@ -1,0 +1,520 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+pricing.tsx
+'use client';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { CheckCircleIcon, StarIcon } from 'lucide-react';
+import Link from 'next/link';
+import { motion, Transition } from 'framer-motion';
+
+type FREQUENCY = 'monthly' | 'yearly';
+const frequencies: FREQUENCY[] = ['monthly', 'yearly'];
+
+interface Plan {
+	name: string;
+	info: string;
+	price: {
+		monthly: number;
+		yearly: number;
+	};
+	features: {
+		text: string;
+		tooltip?: string;
+	}[];
+	btn: {
+		text: string;
+		href: string;
+	};
+	highlighted?: boolean;
+}
+
+interface PricingSectionProps extends React.ComponentProps<'div'> {
+	plans: Plan[];
+	heading: string;
+	description?: string;
+}
+
+export function PricingSection({
+	plans,
+	heading,
+	description,
+	...props
+}: PricingSectionProps) {
+	const [frequency, setFrequency] = React.useState<'monthly' | 'yearly'>(
+		'monthly',
+	);
+
+	return (
+		<div
+			className={cn(
+				'flex w-full flex-col items-center justify-center space-y-5 p-4',
+				props.className,
+			)}
+			{...props}
+		>
+			<div className="mx-auto max-w-xl space-y-2">
+				<h2 className="text-center text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
+					{heading}
+				</h2>
+				{description && (
+					<p className="text-muted-foreground text-center text-sm md:text-base">
+						{description}
+					</p>
+				)}
+			</div>
+			<PricingFrequencyToggle
+				frequency={frequency}
+				setFrequency={setFrequency}
+			/>
+			<div className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
+				{plans.map((plan) => (
+					<PricingCard plan={plan} key={plan.name} frequency={frequency} />
+				))}
+			</div>
+		</div>
+	);
+}
+
+type PricingFrequencyToggleProps = React.ComponentProps<'div'> & {
+	frequency: FREQUENCY;
+	setFrequency: React.Dispatch<React.SetStateAction<FREQUENCY>>;
+};
+
+export function PricingFrequencyToggle({
+	frequency,
+	setFrequency,
+	...props
+}: PricingFrequencyToggleProps) {
+	return (
+		<div
+			className={cn(
+				'bg-muted/30 mx-auto flex w-fit rounded-full border p-1',
+				props.className,
+			)}
+			{...props}
+		>
+			{frequencies.map((freq) => (
+				<button
+					onClick={() => setFrequency(freq)}
+					className="relative px-4 py-1 text-sm capitalize"
+				>
+					<span className="relative z-10">{freq}</span>
+					{frequency === freq && (
+						<motion.span
+							layoutId="frequency"
+							transition={{ type: 'spring', duration: 0.4 }}
+							className="bg-foreground absolute inset-0 z-10 rounded-full mix-blend-difference"
+						/>
+					)}
+				</button>
+			))}
+		</div>
+	);
+}
+
+type PricingCardProps = React.ComponentProps<'div'> & {
+	plan: Plan;
+	frequency?: FREQUENCY;
+};
+
+export function PricingCard({
+	plan,
+	className,
+	frequency = frequencies[0],
+	...props
+}: PricingCardProps) {
+	return (
+		<div
+			key={plan.name}
+			className={cn(
+				'relative flex w-full flex-col rounded-lg border',
+				className,
+			)}
+			{...props}
+		>
+			{plan.highlighted && (
+				<BorderTrail
+					style={{
+						boxShadow:
+							'0px 0px 60px 30px rgb(255 255 255 / 50%), 0 0 100px 60px rgb(0 0 0 / 50%), 0 0 140px 90px rgb(0 0 0 / 50%)',
+					}}
+					size={100}
+				/>
+			)}
+			<div
+				className={cn(
+					'bg-muted/20 rounded-t-lg border-b p-4',
+					plan.highlighted && 'bg-muted/40',
+				)}
+			>
+				<div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+					{plan.highlighted && (
+						<p className="bg-background flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs">
+							<StarIcon className="h-3 w-3 fill-current" />
+							Popular
+						</p>
+					)}
+					{frequency === 'yearly' && (
+						<p className="bg-primary text-primary-foreground flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs">
+							{Math.round(
+								((plan.price.monthly * 12 - plan.price.yearly) /
+									plan.price.monthly /
+									12) *
+									100,
+							)}
+							% off
+						</p>
+					)}
+				</div>
+
+				<div className="text-lg font-medium">{plan.name}</div>
+				<p className="text-muted-foreground text-sm font-normal">{plan.info}</p>
+				<h3 className="mt-2 flex items-end gap-1">
+					<span className="text-3xl font-bold">${plan.price[frequency]}</span>
+					<span className="text-muted-foreground">
+						{plan.name !== 'Free'
+							? '/' + (frequency === 'monthly' ? 'month' : 'year')
+							: ''}
+					</span>
+				</h3>
+			</div>
+			<div
+				className={cn(
+					'text-muted-foreground space-y-4 px-4 py-6 text-sm',
+					plan.highlighted && 'bg-muted/10',
+				)}
+			>
+				{plan.features.map((feature, index) => (
+					<div key={index} className="flex items-center gap-2">
+						<CheckCircleIcon className="text-foreground h-4 w-4" />
+						<TooltipProvider>
+							<Tooltip delayDuration={0}>
+								<TooltipTrigger asChild>
+									<p
+										className={cn(
+											feature.tooltip &&
+												'cursor-pointer border-b border-dashed',
+										)}
+									>
+										{feature.text}
+									</p>
+								</TooltipTrigger>
+								{feature.tooltip && (
+									<TooltipContent>
+										<p>{feature.tooltip}</p>
+									</TooltipContent>
+								)}
+							</Tooltip>
+						</TooltipProvider>
+					</div>
+				))}
+			</div>
+			<div
+				className={cn(
+					'mt-auto w-full border-t p-3',
+					plan.highlighted && 'bg-muted/40',
+				)}
+			>
+				<Button
+					className="w-full"
+					variant={plan.highlighted ? 'default' : 'outline'}
+					asChild
+				>
+					<Link href={plan.btn.href}>{plan.btn.text}</Link>
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+
+type BorderTrailProps = {
+  className?: string;
+  size?: number;
+  transition?: Transition;
+  delay?: number;
+  onAnimationComplete?: () => void;
+  style?: React.CSSProperties;
+};
+
+export function BorderTrail({
+  className,
+  size = 60,
+  transition,
+  delay,
+  onAnimationComplete,
+  style,
+}: BorderTrailProps) {
+  const BASE_TRANSITION = {
+    repeat: Infinity,
+    duration: 5,
+    ease: 'linear',
+  };
+
+  return (
+    <div className='pointer-events-none absolute inset-0 rounded-[inherit] border border-transparent [mask-clip:padding-box,border-box] [mask-composite:intersect] [mask-image:linear-gradient(transparent,transparent),linear-gradient(#000,#000)]'>
+      <motion.div
+        className={cn('absolute aspect-square bg-zinc-500', className)}
+        style={{
+          width: size,
+          offsetPath: `rect(0 auto auto 0 round ${size}px)`,
+          ...style,
+        }}
+        animate={{
+          offsetDistance: ['0%', '100%'],
+        }}
+        transition={{
+          ...(transition ?? BASE_TRANSITION),
+          delay: delay,
+        }}
+        onAnimationComplete={onAnimationComplete}
+      />
+    </div>
+  );
+}
+
+
+demo.tsx
+import React from 'react';
+import { PricingSection } from '@/components/ui/pricing';
+
+export default function Demo() {
+	return (
+		<div className="flex min-h-screen items-center justify-center py-12">
+			<PricingSection
+				plans={PLANS}
+				heading="Plans that Scale with You"
+				description="Whether you're just starting out or growing fast, our flexible pricing has you covered — with no hidden costs."
+			/>
+		</div>
+	);
+}
+
+const PLANS = [
+	{
+		id: 'basic',
+		name: 'Basic',
+		info: 'For most individuals',
+		price: {
+			monthly: 7,
+			yearly: Math.round(7 * 12 * (1 - 0.12)),
+		},
+		features: [
+			{ text: 'Up to 3 Blog posts', limit: '100 tags' },
+			{ text: 'Up to 3 Transcriptions' },
+			{ text: 'Up to 3 Posts stored' },
+			{
+				text: 'Markdown support',
+				tooltip: 'Export content in Markdown format',
+			},
+			{
+				text: 'Community support',
+				tooltip: 'Get answers your questions on discord',
+			},
+			{
+				text: 'AI powered suggestions',
+				tooltip: 'Get up to 100 AI powered suggestions',
+			},
+		],
+		btn: {
+			text: 'Start Your Free Trial',
+			href: '#',
+		},
+	},
+	{
+		highlighted: true,
+		id: 'pro',
+		name: 'Pro',
+		info: 'For small businesses',
+		price: {
+			monthly: 17.99,
+			yearly: Math.round(17.99 * 12 * (1 - 0.12)),
+		},
+		features: [
+			{ text: 'Up to 500 Blog Posts', limit: '500 tags' },
+			{ text: 'Up to 500 Transcriptions' },
+			{ text: 'Up to 500 Posts stored' },
+			{
+				text: 'Unlimited Markdown support',
+				tooltip: 'Export content in Markdown format',
+			},
+			{ text: 'SEO optimization tools' },
+			{ text: 'Priority support', tooltip: 'Get 24/7 chat support' },
+			{
+				text: 'AI powered suggestions',
+				tooltip: 'Get up to 500 AI powered suggestions',
+			},
+		],
+		btn: {
+			text: 'Get started',
+			href: '#',
+		},
+	},
+	{
+		name: 'Business',
+		info: 'For large organizations',
+		price: {
+			monthly: 69.99,
+			yearly: Math.round(49.99 * 12 * (1 - 0.12)),
+		},
+		features: [
+			{ text: 'Unlimited Blog Posts' },
+			{ text: 'Unlimited Transcriptions' },
+			{ text: 'Unlimited Posts stored' },
+			{ text: 'Unlimited Markdown support' },
+			{
+				text: 'SEO optimization tools',
+				tooltip: 'Advanced SEO optimization tools',
+			},
+			{ text: 'Priority support', tooltip: 'Get 24/7 chat support' },
+			{
+				text: 'AI powered suggestions',
+				tooltip: 'Get up to 500 AI powered suggestions',
+			},
+		],
+		btn: {
+			text: 'Contact team',
+			href: '#',
+		},
+	},
+];
+
+```
+
+Copy-paste these files for dependencies:
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+```
+```tsx
+shadcn/tooltip
+"use client"
+
+import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+
+import { cn } from "@/lib/utils"
+
+const TooltipProvider = TooltipPrimitive.Provider
+
+const Tooltip = TooltipPrimitive.Root
+
+const TooltipTrigger = TooltipPrimitive.Trigger
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <TooltipPrimitive.Content
+    ref={ref}
+    sideOffset={sideOffset}
+    className={cn(
+      "z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className,
+    )}
+    {...props}
+  />
+))
+TooltipContent.displayName = TooltipPrimitive.Content.displayName
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+
+```
+
+Install NPM dependencies:
+```bash
+next, lucide-react, framer-motion, @radix-ui/react-slot, class-variance-authority, @radix-ui/react-tooltip
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them
+

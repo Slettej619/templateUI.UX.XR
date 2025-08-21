@@ -1,0 +1,245 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+multiple-select.tsx
+'use client';
+
+import {
+  HTMLAttributes,
+  PropsWithChildren,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
+import * as React from 'react';
+
+export type TTag = {
+  key: string;
+  name: string;
+};
+
+type MultipleSelectProps = {
+  tags: TTag[];
+  customTag?: (item: TTag) => ReactNode | string;
+  onChange?: (value: TTag[]) => void;
+  defaultValue?: TTag[];
+};
+
+export const MultipleSelect = ({
+  tags,
+  customTag,
+  onChange,
+  defaultValue,
+}: MultipleSelectProps) => {
+  const [selected, setSelected] = useState<TTag[]>(defaultValue ?? []);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef?.current) {
+      containerRef.current.scrollBy({
+        left: containerRef.current?.scrollWidth,
+        behavior: 'smooth',
+      });
+    }
+    onValueChange(selected);
+  }, [selected]);
+
+  const onValueChange = (value: TTag[]) => {
+    onChange?.(value);
+  };
+
+  const onSelect = (item: TTag) => {
+    setSelected((prev) => [...prev, item]);
+  };
+
+  const onDeselect = (item: TTag) => {
+    setSelected((prev) => prev.filter((i) => i !== item));
+  };
+
+  return (
+    <AnimatePresence mode={'popLayout'}>
+      <div className={'flex w-[450px] flex-col gap-2'}>
+        <strong>TAGS</strong>
+        <motion.div
+          layout
+          ref={containerRef}
+          className='selected no-scrollbar flex h-12 w-full items-center overflow-x-scroll scroll-smooth rounded-md border border-solid border-gray-200 bg-gray-50 p-2'
+        >
+          <motion.div layout className='flex items-center gap-2'>
+            {selected?.map((item) => (
+              <Tag
+                name={item?.key}
+                key={item?.key}
+                className={'bg-white shadow'}
+              >
+                <div className='flex items-center gap-2'>
+                  <motion.span layout className={'text-nowrap'}>
+                    {item?.name}
+                  </motion.span>
+                  <button className={''} onClick={() => onDeselect(item)}>
+                    <X size={14} />
+                  </button>
+                </div>
+              </Tag>
+            ))}
+          </motion.div>
+        </motion.div>
+        {tags?.length > selected?.length && (
+          <div className='flex w-full flex-wrap gap-2 rounded-md border border-solid border-gray-200 p-2'>
+            {tags
+              ?.filter((item) => !selected?.some((i) => i.key === item.key))
+              .map((item) => (
+                <Tag
+                  name={item?.key}
+                  onClick={() => onSelect(item)}
+                  key={item?.key}
+                >
+                  {customTag ? (
+                    customTag(item)
+                  ) : (
+                    <motion.span layout className={'text-nowrap'}>
+                      {item?.name}
+                    </motion.span>
+                  )}
+                </Tag>
+              ))}
+          </div>
+        )}
+      </div>
+    </AnimatePresence>
+  );
+};
+
+type TagProps = PropsWithChildren &
+  Pick<HTMLAttributes<HTMLDivElement>, 'onClick'> & {
+    name?: string;
+    className?: string;
+  };
+
+export const Tag = ({ children, className, name, onClick }: TagProps) => {
+  return (
+    <motion.div
+      layout
+      layoutId={name}
+      onClick={onClick}
+      className={(
+        `cursor-pointer rounded-md bg-gray-200 px-2 py-1 text-sm ${className}`
+      )}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+
+demo.tsx
+import { MultipleSelect } from "@/components/ui/multiple-select";
+
+export const TABS = [
+  { key: 'web-development', name: 'Web Development' },
+  { key: 'javascript', name: 'JavaScript' },
+  { key: 'typescript', name: 'TypeScript' },
+  { key: 'react', name: 'React' },
+  { key: 'nextjs', name: 'Next.js' },
+  { key: 'nodejs', name: 'Node.js' },
+  { key: 'graphql', name: 'GraphQL' },
+  { key: 'api-development', name: 'API Development' },
+  { key: 'css', name: 'CSS' },
+  { key: 'html', name: 'HTML' },
+  { key: 'design-systems', name: 'Design Systems' },
+  { key: 'tailwind-css', name: 'Tailwind CSS' },
+  { key: 'animations', name: 'Animations' },
+  { key: 'gsap', name: 'GSAP' },
+  { key: 'zustand', name: 'Zustand' },
+  { key: 'redux', name: 'Redux' },
+  { key: 'testing', name: 'Testing' },
+  { key: 'accessibility', name: 'Accessibility' },
+  { key: 'seo', name: 'SEO' },
+  { key: 'performance', name: 'Performance' },
+];
+
+export function MultipleSelectDemo() {
+  return (
+    <div className="flex h-screen w-screen items-center justify-center">
+      <MultipleSelect
+        tags={TABS}
+        onChange={(items) => {
+          console.log("Selected Items:", items);
+        }}
+        defaultValue={[
+          {
+            key: 'css',
+            name: 'CSS',
+          },
+        ]}
+      />
+    </div>
+  );
+}
+```
+
+Install NPM dependencies:
+```bash
+lucide-react, framer-motion
+```
+
+Extend existing globals.css with this code:
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

@@ -1,0 +1,142 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+use-debounced-dimensions.tsx
+import { useState, useEffect, RefObject } from 'react';
+
+interface Dimensions {
+width: number;
+height: number;
+}
+
+export function useDimensions(ref: RefObject<HTMLElement | SVGElement>): Dimensions {
+  const [dimensions, setDimensions] = useState<Dimensions>({ width: 0, height: 0 });
+
+useEffect(() => {
+let timeoutId: NodeJS.Timeout;
+
+    const updateDimensions = () => {
+      if (ref.current) {
+        const { width, height } = ref.current.getBoundingClientRect();
+        setDimensions({ width, height });
+      }
+    };
+
+    const debouncedUpdateDimensions = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateDimensions, 250); // Wait 250ms after resize ends
+    };
+
+    // Initial measurement
+    updateDimensions();
+
+    window.addEventListener('resize', debouncedUpdateDimensions);
+
+    return () => {
+      window.removeEventListener('resize', debouncedUpdateDimensions);
+      clearTimeout(timeoutId);
+    };
+
+}, [ref]);
+
+return dimensions;
+}
+
+
+demo.tsx
+'use client'
+
+import { useRef, useState } from "react"
+import { motion } from "framer-motion"
+import { useDimensions } from "@/components/hooks/use-debounced-dimensions"
+
+function DimensionsDemo() {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const dimensions = useDimensions(containerRef)
+
+  return (
+    <div className="w-full min-h-screen flex flex-col items-center justify-center bg-slate-50 p-8">
+      {/* Main Container */}
+      <div className="w-full max-w-2xl space-y-8">
+        {/* Dimensions Display */}
+        <div className="text-center space-y-2 font-mono">
+          <p className="text-sm text-slate-500">Current Dimensions:</p>
+          <div className="flex justify-center gap-4">
+            <span className="px-3 py-1 bg-slate-200 rounded-md">
+              Width: {Math.round(dimensions.width)}px
+            </span>
+            <span className="px-3 py-1 bg-slate-200 rounded-md">
+              Height: {Math.round(dimensions.height)}px
+            </span>
+          </div>
+        </div>
+
+        {/* Resizable Container */}
+        <motion.div
+          ref={containerRef}
+          className="relative bg-white rounded-lg shadow-lg p-6 cursor-pointer"
+          animate={{
+            height: isExpanded ? 400 : 200,
+          }}
+          onClick={() => setIsExpanded(!isExpanded)}
+          transition={{ type: "spring", bounce: 0.2 }}
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-slate-400">
+              Click to {isExpanded ? "shrink" : "expand"}
+            </span>
+          </div>
+
+          {/* Visual Indicators */}
+          <div className="absolute inset-x-0 bottom-2 flex justify-center gap-2">
+            <motion.div
+              className="w-1.5 h-1.5 rounded-full bg-slate-300"
+              animate={{ scale: isExpanded ? 0.8 : 1 }}
+            />
+            <motion.div
+              className="w-1.5 h-1.5 rounded-full bg-slate-300"
+              animate={{ scale: isExpanded ? 1 : 0.8 }}
+            />
+          </div>
+        </motion.div>
+
+        {/* Instructions */}
+        <div className="text-center text-sm text-slate-500">
+          <p>Try resizing your browser window to see the dimensions update</p>
+          <p className="mt-1">The updates are debounced by 250ms</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export { DimensionsDemo }
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

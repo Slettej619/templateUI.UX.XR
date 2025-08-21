@@ -1,0 +1,120 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+checkbox.tsx
+"use client";
+import { motion } from "motion/react";
+
+interface CheckBoxProps {
+  checked: boolean;
+  onClick: () => void;
+  size?: number;
+  color?: string;
+  duration?: number;
+}
+
+export const CheckBox = ({
+  checked,
+  onClick,
+  size = 32,
+  color = "#00e599",
+  duration = 1,
+}: CheckBoxProps) => {
+  return (
+    <div className="select-none cursor-pointer" onClick={onClick}>
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+        <motion.path
+          d="M 2.45 24.95 V 33.95 C 2.45 35.9382 4.0618 37.55 6.05 37.55 H 33.95 C 35.9382 37.55 37.55 35.9382 37.55 33.95 V 6.05 C 37.55 4.0618 35.9382 2.45 33.95 2.45 H 6.05 C 4.0618 2.45 2.45 4.0618 2.45 6.05 V 22.0617 C 2.45 23.0443 2.8516 23.9841 3.5616 24.6633 L 10.0451 30.8649 C 11.5404 32.2952 13.9308 32.1735 15.2731 30.5988 L 36.2 6.05"
+          stroke={color}
+          strokeLinecap="round"
+          strokeWidth={3}
+          animate={{
+            strokeDasharray: checked ? 150 : 132,
+            strokeDashoffset: checked ? -134 : 0,
+          }}
+          transition={{
+            duration,
+            ease: "easeInOut",
+          }}
+        />
+      </svg>
+    </div>
+  );
+};
+
+
+demo.tsx
+"use client";
+
+import { useState } from "react";
+import { CheckBox } from "@/components/ui/checkbox";
+
+const CheckBoxPreview = () => {
+  const [states, setStates] = useState(Array(4).fill(false));
+
+  const toggle = (index: number) => {
+    const updated = [...states];
+    updated[index] = !updated[index];
+    setStates(updated);
+  };
+
+  return (
+    <div className="flex gap-6 items-end">
+      <CheckBox checked={states[0]} onClick={() => toggle(0)} size={20} />
+      <CheckBox
+        checked={states[1]}
+        onClick={() => toggle(1)}
+        size={24}
+        color="#3b82f6"
+      />
+      <CheckBox
+        checked={states[2]}
+        onClick={() => toggle(2)}
+        size={28}
+        color="#facc15"
+      />
+      <CheckBox
+        checked={states[3]}
+        onClick={() => toggle(3)}
+        size={32}
+        color="#ef4444"
+      />
+    </div>
+  );
+};
+
+export default CheckBoxPreview;
+
+```
+
+Install NPM dependencies:
+```bash
+motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

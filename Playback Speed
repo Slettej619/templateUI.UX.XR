@@ -1,0 +1,401 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+use-interval.tsx
+"use client"
+
+import * as React from "react"
+
+import { useIsomorphicLayoutEffect } from "@/components/hooks/use-isomorphic-layout-effect"
+
+export function useInterval(callback: () => void, delay: number | null) {
+  const savedCallback = React.useRef(callback)
+
+  useIsomorphicLayoutEffect(() => {
+    savedCallback.current = callback
+  }, [callback])
+
+  React.useEffect(() => {
+    if (delay === null) {
+      return
+    }
+
+    const id = setInterval(() => {
+      savedCallback.current()
+    }, delay)
+
+    return () => {
+      clearInterval(id)
+    }
+  }, [delay])
+}
+
+
+demo.tsx
+'use client'
+
+import { useInterval } from "@/components/hooks/use-interval"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Slider } from "@/components/ui/slider"
+import { useState } from "react"
+import { Play, Pause, Timer, RotateCw } from "lucide-react"
+
+export function UseIntervalDemo() {
+  const [count, setCount] = useState<number>(0)
+  const [delay, setDelay] = useState<number>(1000)
+  const [isPlaying, setPlaying] = useState<boolean>(false)
+
+  useInterval(
+    () => {
+      setCount(count + 1)
+    },
+    isPlaying ? delay : null
+  )
+
+  return (
+    <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto">
+      {/* Left Column - Interactive Demo */}
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">Interval Counter</h3>
+            <p className="text-sm text-muted-foreground">
+              A counter that increments based on the interval
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center space-y-4">
+            {/* Counter Display */}
+            <div className="text-6xl font-bold tabular-nums">
+              {count}
+            </div>
+
+            {/* Controls */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setPlaying(!isPlaying)}
+              >
+                {isPlaying ? (
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCount(0)}
+              >
+                <RotateCw className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <Timer className="h-4 w-4" />
+                <span>Interval Delay:</span>
+              </div>
+              <span className="font-mono">{delay}ms</span>
+            </div>
+
+            <Slider
+              value={[delay]}
+              onValueChange={([newDelay]) => setDelay(newDelay)}
+              min={100}
+              max={2000}
+              step={100}
+              className="py-4"
+            />
+          </div>
+
+          <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+            Status: {isPlaying ? (
+              <span className="text-green-500">Running</span>
+            ) : (
+              <span className="text-yellow-500">Paused</span>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* Right Column - Documentation */}
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium mb-2">About useInterval</h3>
+            <p className="text-sm text-muted-foreground">
+              A declarative interval hook that can be paused and resumed.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <pre className="bg-muted p-3 rounded-md text-xs">
+{`const [count, setCount] = useState(0)
+const [delay, setDelay] = useState(1000)
+const [isPlaying, setPlaying] = useState(false)
+
+useInterval(
+  () => {
+    setCount(count + 1)
+  },
+  isPlaying ? delay : null
+)`}
+            </pre>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Features</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Memory leak safe</li>
+                  <li>Supports dynamic delays</li>
+                  <li>Pause/resume functionality</li>
+                  <li>TypeScript ready</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium mb-2">Common Use Cases</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Polling APIs</li>
+                  <li>Countdown timers</li>
+                  <li>Game loops</li>
+                  <li>Animations</li>
+                </ul>
+              </div>
+
+              <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
+                <p className="font-medium mb-1">Pro Tip:</p>
+                Pass <code className="text-xs">null</code> as delay to pause the interval
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  )
+}
+```
+
+Copy-paste these files for dependencies:
+```tsx
+strlrd-29/use-isomorphic-layout-effect
+"use client"
+
+import * as React from "react"
+
+export const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect
+
+```
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+```
+```tsx
+shadcn/card
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      className,
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn(
+      "text-2xl font-semibold leading-none tracking-tight",
+      className,
+    )}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+```
+```tsx
+shadcn/slider
+"use client"
+
+import * as React from "react"
+import * as SliderPrimitive from "@radix-ui/react-slider"
+
+import { cn } from "@/lib/utils"
+
+const Slider = React.forwardRef<
+  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <SliderPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex w-full touch-none select-none items-center",
+      className,
+    )}
+    {...props}
+  >
+    <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
+      <SliderPrimitive.Range className="absolute h-full bg-primary" />
+    </SliderPrimitive.Track>
+    <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+  </SliderPrimitive.Root>
+))
+Slider.displayName = SliderPrimitive.Root.displayName
+
+export { Slider }
+
+```
+
+Install NPM dependencies:
+```bash
+@radix-ui/react-slot, class-variance-authority, @radix-ui/react-slider
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

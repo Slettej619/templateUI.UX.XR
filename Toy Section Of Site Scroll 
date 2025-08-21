@@ -1,0 +1,443 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+entropy.tsx
+'use client'
+import { useEffect, useRef } from 'react'
+
+interface EntropyProps {
+  className?: string
+  size?: number
+}
+
+export function Entropy({ className = "", size = 400 }: EntropyProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // 基础设置
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = size * dpr
+    canvas.height = size * dpr
+    canvas.style.width = `${size}px`
+    canvas.style.height = `${size}px`
+    ctx.scale(dpr, dpr)
+
+    // 使用黑色主题
+    const particleColor = '#ffffff'
+
+    class Particle {
+      x: number
+      y: number
+      size: number
+      order: boolean
+      velocity: { x: number; y: number }
+      originalX: number
+      originalY: number
+      influence: number
+      neighbors: Particle[]
+
+      constructor(x: number, y: number, order: boolean) {
+        this.x = x
+        this.y = y
+        this.originalX = x
+        this.originalY = y
+        this.size = 2
+        this.order = order
+        this.velocity = {
+          x: (Math.random() - 0.5) * 2,
+          y: (Math.random() - 0.5) * 2
+        }
+        this.influence = 0
+        this.neighbors = []
+      }
+
+      update() {
+        if (this.order) {
+          // 有序粒子受混沌影响的运动
+          const dx = this.originalX - this.x
+          const dy = this.originalY - this.y
+
+          // 计算来自混沌粒子的影响
+          const chaosInfluence = { x: 0, y: 0 }
+          this.neighbors.forEach(neighbor => {
+            if (!neighbor.order) {
+              const distance = Math.hypot(this.x - neighbor.x, this.y - neighbor.y)
+              const strength = Math.max(0, 1 - distance / 100)
+              chaosInfluence.x += (neighbor.velocity.x * strength)
+              chaosInfluence.y += (neighbor.velocity.y * strength)
+              this.influence = Math.max(this.influence, strength)
+            }
+          })
+
+          // 混合有序运动和混沌影响
+          this.x += dx * 0.05 * (1 - this.influence) + chaosInfluence.x * this.influence
+          this.y += dy * 0.05 * (1 - this.influence) + chaosInfluence.y * this.influence
+
+          // 影响逐渐减弱
+          this.influence *= 0.99
+        } else {
+          // 混沌运动
+          this.velocity.x += (Math.random() - 0.5) * 0.5
+          this.velocity.y += (Math.random() - 0.5) * 0.5
+          this.velocity.x *= 0.95
+          this.velocity.y *= 0.95
+          this.x += this.velocity.x
+          this.y += this.velocity.y
+
+          // 边界检查
+          if (this.x < size / 2 || this.x > size) this.velocity.x *= -1
+          if (this.y < 0 || this.y > size) this.velocity.y *= -1
+          this.x = Math.max(size / 2, Math.min(size, this.x))
+          this.y = Math.max(0, Math.min(size, this.y))
+        }
+      }
+
+      draw(ctx: CanvasRenderingContext2D) {
+        const alpha = this.order ?
+          0.8 - this.influence * 0.5 :
+          0.8
+        ctx.fillStyle = `${particleColor}${Math.round(alpha * 255).toString(16).padStart(2, '0')}`
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+
+    // 创建粒子网格
+    const particles: Particle[] = []
+    const gridSize = 25
+    const spacing = size / gridSize
+
+    for (let i = 0; i < gridSize; i++) {
+      for (let j = 0; j < gridSize; j++) {
+        const x = spacing * i + spacing / 2
+        const y = spacing * j + spacing / 2
+        const order = x < size / 2
+        particles.push(new Particle(x, y, order))
+      }
+    }
+
+    // 更新邻居关系
+    function updateNeighbors() {
+      particles.forEach(particle => {
+        particle.neighbors = particles.filter(other => {
+          if (other === particle) return false
+          const distance = Math.hypot(particle.x - other.x, particle.y - other.y)
+          return distance < 100
+        })
+      })
+    }
+
+    let time = 0
+    let animationId: number
+    
+    function animate() {
+      ctx.clearRect(0, 0, size, size)
+
+      // 更新邻居关系
+      if (time % 30 === 0) {
+        updateNeighbors()
+      }
+
+      // 更新和绘制所有粒子
+      particles.forEach(particle => {
+        particle.update()
+        particle.draw(ctx)
+
+        // 绘制连接线
+        particle.neighbors.forEach(neighbor => {
+          const distance = Math.hypot(particle.x - neighbor.x, particle.y - neighbor.y)
+          if (distance < 50) {
+            const alpha = 0.2 * (1 - distance / 50)
+            ctx.strokeStyle = `${particleColor}${Math.round(alpha * 255).toString(16).padStart(2, '0')}`
+            ctx.beginPath()
+            ctx.moveTo(particle.x, particle.y)
+            ctx.lineTo(neighbor.x, neighbor.y)
+            ctx.stroke()
+          }
+        })
+      })
+
+      // 添加分隔线和文字
+      ctx.strokeStyle = `${particleColor}4D`
+      ctx.lineWidth = 0.5
+      ctx.beginPath()
+      ctx.moveTo(size / 2, 0)
+      ctx.lineTo(size / 2, size)
+      ctx.stroke()
+
+      ctx.font = '12px monospace'
+      ctx.fillStyle = '#ffffff'
+      ctx.textAlign = 'center'
+
+      time++
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+      }
+    }
+  }, [size])
+
+  return (
+    <div className={`relative bg-black ${className}`} style={{ width: size, height: size }}>
+      <canvas
+        ref={canvasRef}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+      />
+    </div>
+  )
+}
+
+demo.tsx
+'use client'
+
+import * as React from "react"
+import { Entropy } from "@/components/ui/entropy"
+
+export function EntropyDemo() {
+  return (
+    <div className="flex flex-col items-center justify-center bg-black text-white min-h-screen w-full p-8">
+      <div className="flex flex-col items-center">
+        <Entropy className="rounded-lg" />
+        <div className="mt-6 text-center">
+          <div className="space-y-4 font-mono text-[14px] leading-relaxed">
+            <p className="italic text-gray-400/80 tracking-wide">
+              &ldquo;Order and chaos dance &mdash;
+              <span className="opacity-70">digital poetry in motion.&rdquo;</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export { EntropyDemo }
+```
+
+Extend existing tailwind.config.js with this code:
+```js
+import type { Config } from "tailwindcss";
+
+export default {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        primary: "var(--text-primary)",
+        secondary: "var(--text-secondary)",
+      },
+      fontFamily: {
+        sans: ['var(--font-noto)'],
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config;
+
+```
+
+Extend existing globals.css with this code:
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes bounce-x {
+    0%, 100% {
+        transform: translateX(-4px);
+    }
+    50% {
+        transform: translateX(0px);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        opacity: 0.6;
+        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+    }
+    50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+    }
+}
+
+@keyframes float-up {
+    0% {
+        opacity: 0;
+        transform: translateY(6px);
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+.lighting-button {
+    animation: bounce-x 1.5s ease-in-out infinite;
+}
+
+.lighting-button:hover {
+    animation: none;
+    transform: translateX(0);
+}
+
+.light-glow {
+    animation: glow 2s ease-in-out infinite;
+}
+
+.word-float {
+    animation: float-up 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    will-change: transform, opacity, filter;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+
+:root {
+  --elegant-font: 'Great Vibes';
+}
+
+:root[data-theme="dark"] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --text-primary: #ffffff;
+  --text-secondary: #888888;
+}
+
+:root[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #000000;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+}
+
+/* 修复移动设备上的视口高度问题 */
+:root {
+  --vh: 1vh;
+  --app-height: 100%;
+}
+
+/* 全局字体设置 */
+html {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  height: var(--app-height);
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  letter-spacing: -0.025em;
+  height: 100vh;
+  height: calc(var(--vh) * 100);
+  overflow: hidden;
+}
+
+::selection {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 只保留opacity的过渡效果，移除颜色相关的过渡 */
+* {
+  transition-property: opacity;
+  transition-duration: 100ms;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+/* 使用固定颜色 #A3A3A3 替代之前的主题相关颜色 */
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #A3A3A3;
+  border: 3px solid var(--background);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8A8A8A;
+}
+
+@layer components {
+  .footer-link {
+    @apply hover: text-primary;
+  }
+
+  .footer-dot {
+    @apply mx-2 text-[#A3A3A3];
+  }
+}
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+}
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

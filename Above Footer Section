@@ -1,0 +1,126 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+card-with-lines-patter.tsx
+import { cn } from '@/lib/utils'
+import { motion } from "framer-motion"
+
+interface LinesPatternCardProps {
+  children: React.ReactNode
+  className?: string
+  patternClassName?: string
+  gradientClassName?: string
+}
+
+export function LinesPatternCard({ 
+  children, 
+  className,
+  patternClassName,
+  gradientClassName
+}: LinesPatternCardProps) {
+  return (
+    <motion.div
+      className={cn(
+        "border w-full rounded-md overflow-hidden",
+        "bg-background",
+        "border-border",
+        "p-3",
+        className
+      )}
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
+      <div className={cn(
+        "size-full bg-repeat bg-[length:30px_30px]",
+        "bg-lines-pattern-light dark:bg-lines-pattern",
+        patternClassName
+      )}>
+        <div className={cn(
+          "size-full bg-gradient-to-tr",
+          "from-background/90 via-background/40 to-background/10",
+          gradientClassName
+        )}>
+          {children}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+export function LinesPatternCardBody({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div 
+      className={cn("text-left p-4 md:p-6", className)} 
+      {...props} 
+    />
+  )
+}
+
+demo.tsx
+import { LinesPatternCard, LinesPatternCardBody } from "@/components/ui/card-with-lines-patter"
+
+
+export function LinesPatternCardDemo() {
+  return (
+    <LinesPatternCard>
+      <LinesPatternCardBody>
+        <h3 className="text-lg font-bold mb-1 text-foreground">
+          Diagonal Lines Pattern
+        </h3>
+        <p className="text-wrap text-sm text-foreground/60">
+          A modern pattern featuring diagonal lines in a repeating grid. 
+          Creates a sense of movement and depth while maintaining a clean, 
+          minimalist aesthetic.
+        </p>
+      </LinesPatternCardBody>
+    </LinesPatternCard>
+  )
+}
+```
+
+Install NPM dependencies:
+```bash
+framer-motion
+```
+
+Extend existing tailwind.config.js with this code:
+```js
+module.exports = {
+  theme: {
+    extend: {
+      backgroundImage: {
+        'lines-pattern': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cg stroke-width='3.5' stroke='hsla(0, 0%25, 100%25, 1.00)' fill='none'%3E%3Cline x1='0' y1='0' x2='400' y2='400'%3E%3C/line%3E%3Cline x1='400' y1='0' x2='800' y2='400'%3E%3C/line%3E%3Cline x1='800' y1='0' x2='1200' y2='400'%3E%3C/line%3E%3Cline x1='0' y1='400' x2='400' y2='800'%3E%3C/line%3E%3Cline x1='400' y1='400' x2='800' y2='800'%3E%3C/line%3E%3Cline x1='800' y1='400' x2='1200' y2='800'%3E%3C/line%3E%3Cline x1='0' y1='800' x2='400' y2='1200'%3E%3C/line%3E%3Cline x1='400' y1='800' x2='800' y2='1200'%3E%3C/line%3E%3Cline x1='800' y1='800' x2='1200' y2='1200'%3E%3C/line%3E%3C/g%3E%3C/svg%3E")`,
+        'lines-pattern-light': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cg stroke-width='3.5' stroke='hsla(215, 16%25, 47%25, 1.00)' fill='none'%3E%3Cline x1='0' y1='0' x2='400' y2='400'%3E%3C/line%3E%3Cline x1='400' y1='0' x2='800' y2='400'%3E%3C/line%3E%3Cline x1='800' y1='0' x2='1200' y2='400'%3E%3C/line%3E%3Cline x1='0' y1='400' x2='400' y2='800'%3E%3C/line%3E%3Cline x1='400' y1='400' x2='800' y2='800'%3E%3C/line%3E%3Cline x1='800' y1='400' x2='1200' y2='800'%3E%3C/line%3E%3Cline x1='0' y1='800' x2='400' y2='1200'%3E%3C/line%3E%3Cline x1='400' y1='800' x2='800' y2='1200'%3E%3C/line%3E%3Cline x1='800' y1='800' x2='1200' y2='1200'%3E%3C/line%3E%3C/g%3E%3C/svg%3E")`,
+      },
+    },
+  },
+}
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them

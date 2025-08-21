@@ -1,0 +1,375 @@
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+vertical-text.tsx
+import { cn } from "@/lib/utils";
+
+type ElementType = React.ElementType;
+
+interface TextVerticalProps extends React.HTMLAttributes<HTMLElement> {
+  as?: ElementType;
+}
+
+export const Component = ({
+  as: Component = 'div',
+  className,
+  style,
+  ...props
+}: TextVerticalProps) => {
+
+   return (
+    <Component
+      className={cn('size-min -rotate-180 whitespace-nowrap', className)}
+      style={{
+        writingMode: 'vertical-rl',
+        ...style,
+      }}
+      {...props}
+    />
+  );
+};
+
+
+demo.tsx
+// This is file with demos of your component
+// Each export is one usecase for your component
+
+import { Component } from "@/components/ui/vertical-text";
+
+const DemoOne = () => {
+  
+  return (
+    <div className="min-h-svh flex justify-center items-center p-6">
+      
+    <Component className="uppercase text-2xl  tracking-widest font-bold">
+          our summer collection
+      </Component>
+    
+    </div>)
+};
+
+export { DemoOne };
+
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them
+
+ You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+decrypted-text.tsx
+import { useEffect, useState, useRef } from 'react'
+import { motion, HTMLMotionProps } from 'framer-motion'
+
+interface DecryptedTextProps extends HTMLMotionProps<'span'> {
+    text: string
+    speed?: number
+    maxIterations?: number
+    sequential?: boolean
+    revealDirection?: 'start' | 'end' | 'center'
+    useOriginalCharsOnly?: boolean
+    characters?: string
+    className?: string
+    encryptedClassName?: string
+    parentClassName?: string
+    animateOn?: 'view' | 'hover'
+}
+
+export const DecryptedText = ({ // Изменен экспорт по умолчанию на именованный
+    text,
+    speed = 50,
+    maxIterations = 10,
+    sequential = false,
+    revealDirection = 'start',
+    useOriginalCharsOnly = false,
+    characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+',
+    className = '',
+    encryptedClassName = '',
+    parentClassName = '',
+    animateOn = 'hover',
+    ...props
+}: DecryptedTextProps) => {
+    const [displayText, setDisplayText] = useState<string>(text)
+    const [isHovering, setIsHovering] = useState<boolean>(false)
+    const [isScrambling, setIsScrambling] = useState<boolean>(false)
+    const [revealedIndices, setRevealedIndices] = useState<Set<number>>(new Set())
+    const [hasAnimated, setHasAnimated] = useState<boolean>(false)
+    const containerRef = useRef<HTMLSpanElement>(null)
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout | undefined = undefined;
+        let currentIteration = 0
+
+        const getNextIndex = (revealedSet: Set<number>): number => {
+            const textLength = text.length
+            switch (revealDirection) {
+                case 'start':
+                    return revealedSet.size
+                case 'end':
+                    return textLength - 1 - revealedSet.size
+                case 'center': {
+                    const middle = Math.floor(textLength / 2)
+                    const offset = Math.floor(revealedSet.size / 2)
+                    const nextIndex =
+                        revealedSet.size % 2 === 0
+                            ? middle + offset
+                            : middle - offset - 1
+
+                    if (nextIndex >= 0 && nextIndex < textLength && !revealedSet.has(nextIndex)) {
+                        return nextIndex
+                    }
+                    for (let i = 0; i < textLength; i++) {
+                        if (!revealedSet.has(i)) return i
+                    }
+                    return 0
+                }
+                default:
+                    return revealedSet.size
+            }
+        }
+
+        const availableChars = useOriginalCharsOnly
+            ? Array.from(new Set(text.split(''))).filter((char) => char !== ' ')
+            : characters.split('')
+
+        const shuffleText = (originalText: string, currentRevealed: Set<number>): string => {
+            if (useOriginalCharsOnly) {
+                const positions = originalText.split('').map((char, i) => ({
+                    char,
+                    isSpace: char === ' ',
+                    index: i,
+                    isRevealed: currentRevealed.has(i),
+                }))
+
+                const nonSpaceChars = positions
+                    .filter((p) => !p.isSpace && !p.isRevealed)
+                    .map((p) => p.char)
+
+                for (let i = nonSpaceChars.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1))
+                        ;[nonSpaceChars[i], nonSpaceChars[j]] = [nonSpaceChars[j], nonSpaceChars[i]]
+                }
+
+                let charIndex = 0
+                return positions
+                    .map((p) => {
+                        if (p.isSpace) return ' '
+                        if (p.isRevealed) return originalText[p.index]
+                        return nonSpaceChars[charIndex++]
+                    })
+                    .join('')
+            } else {
+                return originalText
+                    .split('')
+                    .map((char, i) => {
+                        if (char === ' ') return ' '
+                        if (currentRevealed.has(i)) return originalText[i]
+                        return availableChars[Math.floor(Math.random() * availableChars.length)]
+                    })
+                    .join('')
+            }
+        }
+
+        if (isHovering && (animateOn === 'hover' || (animateOn === 'view' && !hasAnimated))) {
+            setIsScrambling(true)
+            setHasAnimated(true); // Mark as animated immediately for 'view'
+
+            interval = setInterval(() => {
+                setRevealedIndices((prevRevealed) => {
+                    if (sequential) {
+                        if (prevRevealed.size < text.length) {
+                            const nextIndex = getNextIndex(prevRevealed)
+                            const newRevealed = new Set(prevRevealed)
+                            newRevealed.add(nextIndex)
+                            const nextDisplayText = shuffleText(text, newRevealed);
+                            setDisplayText(nextDisplayText);
+                            return newRevealed
+                        } else {
+                            if (interval) clearInterval(interval)
+                            setIsScrambling(false)
+                            setDisplayText(text); // Ensure final text is set
+                            return prevRevealed
+                        }
+                    } else {
+                        const nextDisplayText = shuffleText(text, prevRevealed);
+                        setDisplayText(nextDisplayText);
+                        currentIteration++
+                        if (currentIteration >= maxIterations) {
+                            if (interval) clearInterval(interval)
+                            setIsScrambling(false)
+                            setDisplayText(text); // Ensure final text is set
+                        }
+                        return prevRevealed
+                    }
+                })
+            }, speed)
+        } else if (!isHovering && animateOn === 'hover') {
+             // Reset only on hover out if animateOn is 'hover'
+            setDisplayText(text)
+            setRevealedIndices(new Set())
+            setIsScrambling(false)
+            if (interval) clearInterval(interval); // Clear interval on hover out
+        }
+
+
+        return () => {
+            if (interval) clearInterval(interval)
+        }
+    }, [
+        isHovering,
+        text,
+        speed,
+        maxIterations,
+        sequential,
+        revealDirection,
+        characters,
+        useOriginalCharsOnly,
+        animateOn,
+        hasAnimated // Add hasAnimated as dependency
+    ])
+
+    useEffect(() => {
+        if (animateOn !== 'view' || hasAnimated) return // Only observe if animateOn is 'view' and hasn't animated yet
+
+        const observerCallback = (entries: IntersectionObserverEntry[]) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    setIsHovering(true) // Trigger the animation in the other effect
+                }
+            })
+        }
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1,
+        }
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions)
+        const currentRef = containerRef.current
+        if (currentRef) {
+            observer.observe(currentRef)
+        }
+
+        return () => {
+            if (currentRef) observer.unobserve(currentRef)
+        }
+    }, [animateOn, hasAnimated]) // Depend on animateOn and hasAnimated
+
+    const hoverProps =
+        animateOn === 'hover'
+            ? {
+                onMouseEnter: () => setIsHovering(true),
+                onMouseLeave: () => setIsHovering(false),
+            }
+            : {}
+
+    return (
+        <motion.span
+            ref={containerRef}
+            className={`inline-block whitespace-pre-wrap ${parentClassName}`}
+            {...hoverProps}
+            {...props}
+        >
+             <span className="sr-only">{displayText}</span>
+
+            <span aria-hidden="true">
+                {displayText.split('').map((char, index) => {
+                    const isRevealedOrDone =
+                        (sequential && revealedIndices.has(index)) || // Sequential reveal checks revealedIndices
+                        (!sequential && !isScrambling) || // Non-sequential reveals when not scrambling (done)
+                        (char === ' ' && !isScrambling) // Spaces are revealed when not scrambling
+
+                    return (
+                        <span
+                            key={index}
+                            className={isRevealedOrDone ? className : encryptedClassName}
+                        >
+                            {char === ' ' && !isRevealedOrDone ? '\u00A0' : char} {/* Use non-breaking space for unrevealed spaces */}
+                        </span>
+                    )
+                })}
+            </span>
+        </motion.span>
+    )
+}
+
+demo.tsx
+import { DecryptedText } from "@/components/ui/decrypted-text";
+
+const DemoDecryptedText = () => {
+  return (
+    <div className="flex w-full h-screen justify-center items-center p-4 bg-white dark:bg-gray-900">
+      <DecryptedText
+        text="Customize me"
+        speed={100}
+        maxIterations={20}
+        characters="ABCD1234!?"
+        className="text-blue-600 dark:text-green-400"
+        parentClassName="font-mono text-5xl md:text-6xl lg:text-7xl text-gray-800 dark:text-white"
+        encryptedClassName="text-red-600 dark:text-yellow-600"
+        animateOn="hover"
+      />
+    </div>
+  );
+};
+
+export { DemoDecryptedText };
+```
+
+Install NPM dependencies:
+```bash
+framer-motion
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them
